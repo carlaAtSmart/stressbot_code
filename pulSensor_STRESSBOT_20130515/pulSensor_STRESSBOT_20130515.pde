@@ -36,6 +36,8 @@ float oldYBlue = 0;
 float oldXGreen = 75;
 float oldYGreen = 0;
 
+PImage screenMask;
+
 
 // initializing flags here
 boolean pulse = false;    // made true in serialEvent when processing gets new IBI value from arduino
@@ -45,6 +47,7 @@ void setup() {
   background(0);
   size(1024, 600); // Stage size
   defineFaceAnim();
+  screenMask = loadImage("stressbot-screen-mask.png");
 
 
   //PULSE DATA SCREEN
@@ -93,6 +96,7 @@ void draw() {
       }
     }
   }
+  image(screenMask, 0, 0, width, height); //put mask on top
 }  //END OF DRAW
 
 
