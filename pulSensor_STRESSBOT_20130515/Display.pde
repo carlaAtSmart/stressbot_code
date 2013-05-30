@@ -9,19 +9,18 @@ class Display {
   int dispHeight, dispWidth, dispCornerRadius, dispLocX, dispLocY;
   PGraphics dispBuffer; //create a buffer for this display viewport
 
-//Call the constructor passing in height, width, corner radius, x-location, y-location
-  Display (int _dispHeight, int _dispWidth, int _dispCornerRadius, int _dispLocX, int _dispLocY) {
+  //Constructor
+  Display(int _dispHeight, int _dispWidth, int _dispLocX, int _dispLocY) {
    dispHeight = _dispHeight;
    dispWidth = _dispWidth;
-   dispCornerRadius = _dispCornerRadius;
    dispLocX = _dispLocX;
    dispLocY = _dispLocY;
    dispBuffer = createGraphics(dispHeight, dispWidth, P2D);
-  }
-  
-  void updateDisplay() {
-    dispBuffer.beginDraw();
-  }
+ }
+ 
+ void updateDisplay() {
+  dispBuffer.beginDraw();
+}
   // put graphics between calling these two methods
   
   void drawDisplay() {
@@ -29,4 +28,3 @@ class Display {
     image(dispBuffer, dispLocX, dispLocY);
   }
 }
-

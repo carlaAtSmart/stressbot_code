@@ -1,3 +1,21 @@
+import processing.core.*; 
+import processing.data.*; 
+import processing.event.*; 
+import processing.opengl.*; 
+
+import processing.serial.*; 
+
+import java.util.HashMap; 
+import java.util.ArrayList; 
+import java.io.File; 
+import java.io.BufferedReader; 
+import java.io.PrintWriter; 
+import java.io.InputStream; 
+import java.io.OutputStream; 
+import java.io.IOException; 
+
+public class pulSensor_STRESSBOT_20130515 extends PApplet {
+
 /*     PulseSensor Amped HRV Poncaire Plot
  
  This is an HRV visualizer code for Pulse Sensor.
@@ -11,7 +29,7 @@
  This code released into the public domain without promises or caveats.
  */
 
-import processing.serial.*;
+
 PFont font, botFont, largerFont;
 Serial port;
 
@@ -27,7 +45,7 @@ int[] beatTimeY;          // array of Y coordinates
 int numPoints = 100;      // size of coordinate arrays. sets number of displayed datapoints
 int upperH;
 float xPos = 97;          // sets the start xPos value to the edge of the graph field
-float horizInterval = .05; //the distance between points on the plot
+float horizInterval = .05f; //the distance between points on the plot
 float ySin =0;                //the sin wave
 int timer;                 // simple timer to time operations
 
@@ -44,7 +62,7 @@ Eye myEye;
 boolean pulse = false;    // made true in serialEvent when processing gets new IBI value from arduino
 
 
-void setup() {
+public void setup() {
   background(0);
   size(1024, 600); // Stage size
   defineFaceAnim();
@@ -77,7 +95,7 @@ void setup() {
 }  // END OF SETUP
 
 //----------------------------------------------------------------
-void draw() {
+public void draw() {
   if (FINGER==0) {
     //FACE
     //println(FINGER);  // print if there's a finger or not to the serial monitor
@@ -100,16 +118,16 @@ void draw() {
   image(screenMask, 0, 0, width, height); //put mask on top
 }  //END OF DRAW
 
-void displayStressLevel() {
+public void displayStressLevel() {
   //calculateStressLevel();
 }
 
-int calculateStressLevel(int _ibi) {
+public int calculateStressLevel(int _ibi) {
   return 0;
 
 }
 
-void updateSmile(int _moodVal) { //_moodval should be passed in between a min and max, with 0 as a median
+public void updateSmile(int _moodVal) { //_moodval should be passed in between a min and max, with 0 as a median
   pushStyle();
     stroke(0);
     noFill();
@@ -119,16 +137,16 @@ void updateSmile(int _moodVal) { //_moodval should be passed in between a min an
     println(mouthHeight);
     if(mouthHeight >= 0) { //positive values are smiles, negative are frowns
       //arc location needs to be determined based on subscreen dimensions
-      arc(width/2, height/2, width-30, abs(mouthHeight), 0+.3, PI-.3);  
+      arc(width/2, height/2, width-30, abs(mouthHeight), 0+.3f, PI-.3f);  
     }
     else {
-      arc(width/2, height/2, width-30, abs(mouthHeight), -PI+.3, 0-.3);
+      arc(width/2, height/2, width-30, abs(mouthHeight), -PI+.3f, 0-.3f);
     }
   popStyle();
 }
 
 
-void HR_screen() {
+public void HR_screen() {
   background(0);//clear screen
   //PULSE
   frameRate(60);
@@ -161,7 +179,7 @@ void HR_screen() {
 
 
 //----------------------------------------------------------------
-void createPlotWindow() {
+public void createPlotWindow() {
   //  begin by printing title & etc.
   textFont(font); 
   fill(255, 253, 248);            // eggshell white  
@@ -194,14 +212,14 @@ void createPlotWindow() {
 
 //---------------------------------------------------------------- 
 
-void drawPulseWave() {
+public void drawPulseWave() {
   // GRAPH THE LIVE SENSOR DATA
   // move the y coordinate of the pulse waveform over one pixel left
   for (int i = 0; i < PPG.length-1; i++) {  
     PPG[i] = PPG[i+1];   // new data enters on the right at pulseY.length-1
   }
   //   scale and constrain incoming Pulse Sensor value to fit inside the pulse window
-  PPG[PPG.length-1] = int(map(ppgY, 50, 950, (height/2+65)+225, (height/2+65)-225));
+  PPG[PPG.length-1] = PApplet.parseInt(map(ppgY, 50, 950, (height/2+65)+225, (height/2+65)-225));
 
   fill(255, 253, 248);    // eggshell white
   noStroke();
@@ -217,7 +235,7 @@ void drawPulseWave() {
 
 //----------------------------------------------------------------
 
-void refreshWave(float whereisX) {
+public void refreshWave(float whereisX) {
   //move data points left as new ones are added
   //    DRAW THE POINCARE PLOT
 
@@ -252,3 +270,170 @@ void refreshWave(float whereisX) {
 
 //----------------------------------------------------------------
 
+/*
+Optional handler to make it easier to make separate displays for the top and bottom of the bot's face.
+This is a very thin extension of the createGraphics functionality, and a bit of a hack at that, as it
+doesn't actually extend the PGraphics class, but rather just calls the constructors in Processing. 
+If we find we need to build more functionality this can serve as a scaffolding.
+*/
+
+class Display {
+  int dispHeight, dispWidth, dispCornerRadius, dispLocX, dispLocY;
+  PGraphics dispBuffer; //create a buffer for this display viewport
+
+//Call the constructor passing in height, width, corner radius, x-location, y-location
+  Display (int _dispHeight, int _dispWidth, int _dispCornerRadius, int _dispLocX, int _dispLocY) {
+   dispHeight = _dispHeight;
+   dispWidth = _dispWidth;
+   dispCornerRadius = _dispCornerRadius;
+   dispLocX = _dispLocX;
+   dispLocY = _dispLocY;
+   dispBuffer = createGraphics(dispHeight, dispWidth, P2D);
+  }
+  
+  public void updateDisplay() {
+    dispBuffer.beginDraw();
+  }
+  // put graphics between calling these two methods
+  
+  public void drawDisplay() {
+    dispBuffer.endDraw();
+    image(dispBuffer, dispLocX, dispLocY);
+  }
+}
+class Eye {
+  int size, posX, posY;
+  int animLength = 0;
+  ArrayList frames = new ArrayList(0);
+  Eye (int _size, int _posX, int _posY) {
+    //initialize eye object
+    size = _size;
+    posX = _posX;
+    posY = _posY;
+  }
+
+  Eye(int _size, int _posX, int _posY, PImage _frames[]) {
+    //initialize with optional frame array
+    size = _size;
+    posX = _posX;
+    posY = _posY;
+    animLength = _frames.length;
+    println("image length: " + _frames.length);
+//    frames = new ArrayList(_frames.length);
+    for (int i=0; i<_frames.length; i++) {
+      //fill the object array
+      frames.add(i, _frames[i]);
+    }
+  }
+  
+  public void addFrames() {
+     print ("object size: " + frames.size()); 
+  }
+}
+
+class Mouth {
+  int expression;
+  int mouthColor;
+}
+
+int frame = 0; // The frame to display
+int textX = 512;
+int textY = 530;  
+PImage[] images = new PImage[7]; // Image array
+
+public void defineFaceAnim() {
+  images[0] = loadImage("botFace1-01.png");
+  images[1] = loadImage("botFace2-01.png");
+  images[2] = loadImage("botFace3-01.png");
+  images[3] = loadImage("botFace0-01.png");
+  images[4] = loadImage("botFace3-01.png");
+  images[5] = loadImage("botFace2-01.png");
+  images[6] = loadImage("botFace1-01.png");
+}
+
+public void drawFaceAnim() {
+  frameRate(15);
+  frame++;
+  if (frame == images.length) {
+    frame = 0;
+    delay(PApplet.parseInt(random(1000, 3000)));
+  }
+  image(images[frame], 0, 0);
+
+  textFont(botFont); 
+  fill(255, 253, 248);            // eggshell white
+  textAlign(CENTER);
+  text("Hello! Place your finger on the sensor to measure your stress.", textX, textY);
+}
+
+public void confirmation() {
+  background(0);//clear
+  image(images[3], 0, 0);
+  textFont(botFont); 
+  fill(255, 253, 248);            // eggshell white
+  text("Great! Now stay still while I read your heart rate.", textX, textY);
+}
+
+public void putFingerBack() {
+  frameRate(15);
+  frame++;
+  if (frame == images.length) {
+    frame = 0;
+    delay(PApplet.parseInt(random(1000, 3000)));
+  }
+  image(images[frame], 0, 0);
+}
+
+
+
+
+
+public void keyPressed(){
+// take a picture of the screen by pressign the s key 
+ if (key == 's' || key =='S'){
+  saveFrame("HRV-####.jpg");      // take a shot of that!
+ }
+// clear the Poncaire plot arrays and clear the phase space by pressing c key 
+ if (key == 'c'){
+   for (int i=numPoints-1; i>=0; i--){  // 
+      beatTimeY[i] = 0;
+      beatTimeX[i] = 0;
+    }
+ }
+}  // END OF KEYPRESSED
+
+public void serialEvent(Serial port){   
+   String inData = port.readStringUntil('\n');  
+   
+   if (inData.charAt(0) == 'Q'){          // leading 'Q' means time between beats in milliseconds
+     inData = inData.substring(1);        // cut off the leading 'Q'
+     inData = trim(inData);               // trim the \n off the end
+     IBI = PApplet.parseInt(inData);                   // convert ascii string to integer IBI 
+     println("IBI: " + IBI);                
+     pulse = true;                        // set the pulse flag
+     return;     
+   }
+   
+   if (inData.charAt(0) == 'S'){          // leading 'S' means sensor data
+     inData = inData.substring(1);        // cut off the leading 'S'
+     inData = trim(inData);               // trim the \n off the end
+     ppgY = PApplet.parseInt(inData);                  // convert the ascii string to ppgY
+   return;     
+   }   
+   
+    if (inData.charAt(0) == 'F'){          // leading 'S' means sensor data
+     inData = inData.substring(1);        // cut off the leading 'F'
+     inData = trim(inData);               // trim the \n off the end
+     FINGER = PApplet.parseInt(inData);                  // convert the ascii string to FINGER
+   return;     
+   }  
+}// END OF SERIAL EVENT
+  static public void main(String[] passedArgs) {
+    String[] appletArgs = new String[] { "pulSensor_STRESSBOT_20130515" };
+    if (passedArgs != null) {
+      PApplet.main(concat(appletArgs, passedArgs));
+    } else {
+      PApplet.main(appletArgs);
+    }
+  }
+}

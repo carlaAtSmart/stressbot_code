@@ -6,6 +6,7 @@ void serialEvent(Serial port){
      inData = inData.substring(1);        // cut off the leading 'Q'
      inData = trim(inData);               // trim the \n off the end
      IBI = int(inData);                   // convert ascii string to integer IBI 
+     println("IBI: " + IBI);                
      pulse = true;                        // set the pulse flag
      return;     
    }
