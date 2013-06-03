@@ -11,8 +11,8 @@
  This code released into the public domain without promises or caveats.
  */
 
-import processing.serial.*;
-Serial port;
+ import processing.serial.*;
+ Serial port;
 
 int test;                 // general debugger
 int pulseRate = 0;        // used to hold pulse rate value from arduino (updated in serialEvent)
@@ -22,15 +22,13 @@ int ppgY;                 // used to print the pulse waveform
 
 ArrayList<Integer> beatIntervals;
 
-
-
 // initializing flags here
 boolean pulse = false;    // made true in serialEvent when processing gets new IBI value from arduino
 
 
 void setup() {
   background(255);
-  size(1024, 600); // Stage size
+  size(1024, 600, P3D); // Stage size
   // screenMask = loadImage("stressbot-screen-mask.png");
 
   beatIntervals = new ArrayList(); //create empty array list
@@ -44,29 +42,40 @@ void setup() {
 
 //----------------------------------------------------------------
 void draw() {
-  background(255);
-  if (beatIntervals.size() > 11) {
-    // println("ready");
+  background(255, 10);
+  if (beatIntervals.size() > 20) { //take 20 beats to calibrate
     drawPoincare();
   }  
 }
 
 void drawPoincare() {
-  for (int i=beatIntervals.size()-10; i<beatIntervals.size(); i++) { //get the last 10 values
-    pushStyle();
-      noStroke();
-      fill(0, 255, 0);
-      float xPos = beatIntervals.get(i);
-      xPos = normalizeIntervalVal(xPos, width); //normalize x-value
-      float yPos = beatIntervals.get(i-1);
-      yPos = normalizeIntervalVal(yPos, height); //get and normalize y-value
-      // println("xPos: " + xPos + "yPos: " + yPos);
-      ellipse(xPos, yPos, 15, 15);
-    popStyle();
-  }
-}
+  curveTightness(map(mouseX, 0, width, -5, 5));
+  pushStyle();
+  noFill();
+  beginShape();
+  int counter = 0;
+      for (int i=beatIntervals.size()-16; i<beatIntervals.size(); i++) { //get the last 30 values
+        float xPos = beatIntervals.get(i-1);
+        xPos = normalizeIntervalVal(xPos, width); //normalize x-value
+        float yPos = beatIntervals.get(i);
+        yPos = normalizeIntervalVal(yPos, height); //get and normalize y-value
+        curveVertex(xPos, yPos, 0);
+      }
+      endShape();
+      popStyle();
+    }
 
-float normalizeIntervalVal(float _arrayVal, int _screenSize) {
-  float _val = map(_arrayVal, 0, 1500, 30, _screenSize-30);
-  return _val;
-}
+    float normalizeIntervalVal(float _arrayVal, int _screenSize) {
+      float _val = map(_arrayVal, 0, maxInterval(), 30, _screenSize-30);
+      return _val;
+    }
+
+    int maxInterval() {
+      int maxVal = 0;
+      for (int i=0; i<beatIntervals.size(); i++) {
+        if (beatIntervals.get(i) > maxVal) {
+          maxVal = beatIntervals.get(i);
+        }
+      }
+      return maxVal;
+    }
