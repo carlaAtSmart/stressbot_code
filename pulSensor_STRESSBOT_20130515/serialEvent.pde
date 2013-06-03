@@ -5,9 +5,9 @@ void serialEvent(Serial port){
    if (inData.charAt(0) == 'Q'){          // leading 'Q' means time between beats in milliseconds
      inData = inData.substring(1);        // cut off the leading 'Q'
      inData = trim(inData);               // trim the \n off the end
-     IBI = int(inData);                   // convert ascii string to integer IBI 
+     IBI = int(inData); 
+     addBeat(IBI);                  // convert ascii string to integer IBI 
      println("IBI: " + IBI);                
-     pulse = true;                        // set the pulse flag
      return;     
    }
    
@@ -21,7 +21,10 @@ void serialEvent(Serial port){
     if (inData.charAt(0) == 'F'){          // leading 'S' means sensor data
      inData = inData.substring(1);        // cut off the leading 'F'
      inData = trim(inData);               // trim the \n off the end
-     FINGER = int(inData);                  // convert the ascii string to FINGER
    return;     
    }  
 }// END OF SERIAL EVENT
+
+void addBeat(int _beatInterval) {
+  beatIntervals.add(_beatInterval);
+}

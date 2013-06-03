@@ -30,7 +30,6 @@ public class pulSensor_STRESSBOT_20130515 extends PApplet {
  */
 
 
-PFont font, botFont, largerFont;
 Serial port;
 
 int test;                 // general debugger
@@ -38,54 +37,21 @@ int pulseRate = 0;        // used to hold pulse rate value from arduino (updated
 int Sensor = 0;           // used to hold raw sensor data from arduino (updated in serialEvent)
 int IBI;                  // length of time between heartbeats in milliseconds (updated in serialEvent)
 int ppgY;                 // used to print the pulse waveform
-int FINGER;               //from Photocell on Arduino - if sensor is blocked there's a finger
-int[] PPG;                // array of live PPG datapoints
-float[] beatTimeX;          // array of X coordinates
-int[] beatTimeY;          // array of Y coordinates
-int numPoints = 100;      // size of coordinate arrays. sets number of displayed datapoints
-int upperH;
-float xPos = 97;          // sets the start xPos value to the edge of the graph field
-float horizInterval = .05f; //the distance between points on the plot
-float ySin =0;                //the sin wave
-int timer;                 // simple timer to time operations
 
-float oldXBlue = 75;        // to store previous values for line drawing (5000 temporary test value)
-float oldYBlue = 0;
-float oldXGreen = 75;
-float oldYGreen = 0;
+ArrayList<Integer> beatIntervals;
 
-PImage screenMask;
 
-Eye myEye;
 
 // initializing flags here
 boolean pulse = false;    // made true in serialEvent when processing gets new IBI value from arduino
 
 
 public void setup() {
-  background(0);
+  background(255);
   size(1024, 600); // Stage size
-  defineFaceAnim();
-  screenMask = loadImage("stressbot-screen-mask.png");
+  // screenMask = loadImage("stressbot-screen-mask.png");
 
-
-  //PULSE DATA SCREEN
-
-  beatTimeX = new float[numPoints];    // these two arrays hold the Poncaire Plot data
-  beatTimeY = new int[numPoints];    // size of array determines number of displayed points
-  PPG = new int[150];                // PPG array that that prints heartbeat waveform
-  for (int i=0; i<150; i++) {
-    PPG[i] = height/2+65;             // initialize PPG widow with dataline at midpoint
-  }
-  ppgY = height/2+65;                // initialize ppgY this variable gets updated with new 
-  // pulse wave data from Arduino
-  //  LOAD THE FONTS
-  font = loadFont("Arial-BoldMT-36.vlw");
-  largerFont = loadFont("Arial-BoldMT-40.vlw");
-  botFont = loadFont("smartneuecond-24.vlw");
-  textFont(font);
-  textAlign(CENTER);
-  rectMode(CENTER);
+  beatIntervals = new ArrayList(); //create empty array list
 
   // FIND AND ESTABLISH CONTACT WITH THE SERIAL PORT
   println(Serial.list());       // print a list of available serial ports
@@ -96,311 +62,32 @@ public void setup() {
 
 //----------------------------------------------------------------
 public void draw() {
-  if (FINGER==0) {
-    //FACE
-    //println(FINGER);  // print if there's a finger or not to the serial monitor
-    background(0);//clear screen
-    drawFaceAnim();
-    timer = millis(); // set timer
-  }
-  
-  else { //finger covering light sensor
-    //println(FINGER); // print if there's a finger or not to the serial monitor
-    confirmation();
-    if ((timer + 3000) < millis()) {  // timer which waits 3 seconds while showing confirmation screen
-      if (FINGER == 1) { // checks that the finger is still on
-      } 
-      else {
-        putFingerBack();
-      }
-    }
-  }
-  image(screenMask, 0, 0, width, height); //put mask on top
-}  //END OF DRAW
-
-public void displayStressLevel() {
-  //calculateStressLevel();
+  background(255);
+  if (beatIntervals.size() > 11) {
+    // println("ready");
+    drawPoincare();
+  }  
 }
 
-public int calculateStressLevel(int _ibi) {
-  return 0;
-
-}
-
-public void updateSmile(int _moodVal) { //_moodval should be passed in between a min and max, with 0 as a median
-  pushStyle();
-    stroke(0);
-    noFill();
-    strokeWeight(10);
-    strokeCap(ROUND);
-    int mouthHeight = _moodVal;
-    println(mouthHeight);
-    if(mouthHeight >= 0) { //positive values are smiles, negative are frowns
-      //arc location needs to be determined based on subscreen dimensions
-      arc(width/2, height/2, width-30, abs(mouthHeight), 0+.3f, PI-.3f);  
-    }
-    else {
-      arc(width/2, height/2, width-30, abs(mouthHeight), -PI+.3f, 0-.3f);
-    }
-  popStyle();
-}
-
-
-public void HR_screen() {
-  background(0);//clear screen
-  //PULSE
-  frameRate(60);
-  noStroke(); 
-  createPlotWindow();
-  refreshWave(xPos);//draw the previous dots
-
-    //  draw the current data point as a red dot `
-  fill(250, 0, 0);
-  // float  x = map(beatTimeX[0],0,1500,75,600);  // scale the data to fit the screen
-  xPos = xPos+horizInterval;
-
-  if (xPos > 847) {         // resets xPos when it reaches the edge of the graph field
-    xPos = 97;            // put in something else here to trigger that the reading is done
-  }                       // or at least clear out the array holding the values if it should continue to read
-
-
-  float  y = map(beatTimeY[0], 0, 1500, 615, 25);  // invert y so it looks normal
-  ellipse(xPos, y, 5, 5);   // print datapoints as dots 5 pixel diameter
-
-
-  // print IBI value, which was just graphed on the n axis
-  fill(255, 253, 248);    // eggshell white
-  text("n: "+IBI+"mS", width-85, 50);
-  drawPulseWave();
-  noStroke();
-}
-
-
-
-
-//----------------------------------------------------------------
-public void createPlotWindow() {
-  //  begin by printing title & etc.
-  textFont(font); 
-  fill(255, 253, 248);            // eggshell white  
-  text("Pulse Sensor HRV Poncaire Plot", width/2-50, 40);
-
-  textFont(font); 
-  // fill(255, 253, 248);                        // eggshell white
-  fill(172, 172, 172); 
-  rect(width/2-40, height/2, 750, 480);     // draw phase space
-  fill(200);                                // get ready to print phase space scale
-  text("0mS", 40, height-25);                 // origin, scaled in mS
-  for (int i=500; i<=1500; i+=500) {         // print x scale
-    text(i, 40, map(i, 0, 1500, 615, 75));
-  }
-  for (int i=500; i<=1500; i+=500) {         // print  y scale
-    text(i, 75+map(i, 0, 1500, 0, 550), height-10);
-  }
-  stroke(0, 30, 250);                         // get ready to draw gridlines
-  for (int i=0; i<1500; i+=100) {            // draw grid lines on axes
-    line(75, map(i, 0, 1500, 614, 26), 85, map(i, 0, 1500, 614, 26)); //y axis
-    line(75+map(i, 0, 1500, 0, 549), height-35, 75+map(i, 0, 1500, 0, 549), height-45); // x axis
-  }
-  noStroke();
-  // print axes legend
-  fill(255, 253, 10);
-  text("n", 75+map(750, 0, 1500, 0, 550), height-10);    // n is the most recent IBI value
-  text("n-1", 40, map(750, 0, 1500, 615, 75));               // n-1 is the one we got before n
-}//end createPlotWindow
-
-
-//---------------------------------------------------------------- 
-
-public void drawPulseWave() {
-  // GRAPH THE LIVE SENSOR DATA
-  // move the y coordinate of the pulse waveform over one pixel left
-  for (int i = 0; i < PPG.length-1; i++) {  
-    PPG[i] = PPG[i+1];   // new data enters on the right at pulseY.length-1
-  }
-  //   scale and constrain incoming Pulse Sensor value to fit inside the pulse window
-  PPG[PPG.length-1] = PApplet.parseInt(map(ppgY, 50, 950, (height/2+65)+225, (height/2+65)-225));
-
-  fill(255, 253, 248);    // eggshell white
-  noStroke();
-  rect(width-85, height/2, 150, 480);    // pulse window
-  strokeWeight(1);
-  stroke(250, 0, 0);                         // use red for the pulse wave
-
-  for (int i=1; i<PPG.length-1; i++) {      // draw the waveform shape
-    PPG[i] = constrain(PPG[i], 60, 540);   // constrain the waveform to stay within the area
-    line(width-160+i, PPG[i], width-160+(i-1), PPG[i-1]);
-  }
-}//end drawPulseWave
-
-//----------------------------------------------------------------
-
-public void refreshWave(float whereisX) {
-  //move data points left as new ones are added
-  //    DRAW THE POINCARE PLOT
-
-
-  if (pulse == true) {                    // check for new data from arduino
-    pulse = false;                       // drop the pulse flag
-    for (int i=numPoints-1; i>0; i--) {   // shift the data in n and n-1 arrays 
-      beatTimeY[i] = beatTimeY[i-1];
-      beatTimeX[i] = beatTimeX[i-1];     // shift the data point through the array
-    }
-    //beatTimeY[0] = beatTimeX[1];       // toss the last n into the current n-1
-    beatTimeY[0] = IBI;                // update the current n
-    beatTimeX[0] = whereisX;
-  }
-  //  draw a hystory of the data points as blue dots
-  for (int i=1; i<numPoints; i++) {
-    //float  x = map(beatTimeX[i],0,1500,75,600);  // scale the data to fit the screen
-    float x = beatTimeX[i];
-    float y = map(beatTimeY[i], 0, 1500, 615, 25);  // invert y so it looks normal
-
-    fill(0, 0, 255);//blue
-    ellipse(x, y, 4, 4);   // print datapoints as dots 2 pixel diameter
-
-
-    ySin = sin(x/5)*30;  //perfect sin wave for comparison
-
-
-    fill(0, 255, 0);//green 
-    ellipse(x, ySin+250, 4, 4);
-  }
-} //END OF REFRESH WAVE
-
-//----------------------------------------------------------------
-
-/*
-Optional handler to make it easier to make separate displays for the top and bottom of the bot's face.
-This is a very thin extension of the createGraphics functionality, and a bit of a hack at that, as it
-doesn't actually extend the PGraphics class, but rather just calls the constructors in Processing. 
-If we find we need to build more functionality this can serve as a scaffolding.
-*/
-
-class Display {
-  int dispHeight, dispWidth, dispCornerRadius, dispLocX, dispLocY;
-  PGraphics dispBuffer; //create a buffer for this display viewport
-
-//Call the constructor passing in height, width, corner radius, x-location, y-location
-  Display (int _dispHeight, int _dispWidth, int _dispCornerRadius, int _dispLocX, int _dispLocY) {
-   dispHeight = _dispHeight;
-   dispWidth = _dispWidth;
-   dispCornerRadius = _dispCornerRadius;
-   dispLocX = _dispLocX;
-   dispLocY = _dispLocY;
-   dispBuffer = createGraphics(dispHeight, dispWidth, P2D);
-  }
-  
-  public void updateDisplay() {
-    dispBuffer.beginDraw();
-  }
-  // put graphics between calling these two methods
-  
-  public void drawDisplay() {
-    dispBuffer.endDraw();
-    image(dispBuffer, dispLocX, dispLocY);
-  }
-}
-class Eye {
-  int size, posX, posY;
-  int animLength = 0;
-  ArrayList frames = new ArrayList(0);
-  Eye (int _size, int _posX, int _posY) {
-    //initialize eye object
-    size = _size;
-    posX = _posX;
-    posY = _posY;
-  }
-
-  Eye(int _size, int _posX, int _posY, PImage _frames[]) {
-    //initialize with optional frame array
-    size = _size;
-    posX = _posX;
-    posY = _posY;
-    animLength = _frames.length;
-    println("image length: " + _frames.length);
-//    frames = new ArrayList(_frames.length);
-    for (int i=0; i<_frames.length; i++) {
-      //fill the object array
-      frames.add(i, _frames[i]);
-    }
-  }
-  
-  public void addFrames() {
-     print ("object size: " + frames.size()); 
+public void drawPoincare() {
+  for (int i=beatIntervals.size()-10; i<beatIntervals.size(); i++) { //get the last 10 values
+    pushStyle();
+      noStroke();
+      fill(0, 255, 0);
+      float xPos = beatIntervals.get(i);
+      xPos = normalizeIntervalVal(xPos, width); //normalize x-value
+      float yPos = beatIntervals.get(i-1);
+      yPos = normalizeIntervalVal(yPos, height); //get and normalize y-value
+      // println("xPos: " + xPos + "yPos: " + yPos);
+      ellipse(xPos, yPos, 15, 15);
+    popStyle();
   }
 }
 
-class Mouth {
-  int expression;
-  int mouthColor;
+public float normalizeIntervalVal(float _arrayVal, int _screenSize) {
+  float _val = map(_arrayVal, 0, 1500, 30, _screenSize-30);
+  return _val;
 }
-
-int frame = 0; // The frame to display
-int textX = 512;
-int textY = 530;  
-PImage[] images = new PImage[7]; // Image array
-
-public void defineFaceAnim() {
-  images[0] = loadImage("botFace1-01.png");
-  images[1] = loadImage("botFace2-01.png");
-  images[2] = loadImage("botFace3-01.png");
-  images[3] = loadImage("botFace0-01.png");
-  images[4] = loadImage("botFace3-01.png");
-  images[5] = loadImage("botFace2-01.png");
-  images[6] = loadImage("botFace1-01.png");
-}
-
-public void drawFaceAnim() {
-  frameRate(15);
-  frame++;
-  if (frame == images.length) {
-    frame = 0;
-    delay(PApplet.parseInt(random(1000, 3000)));
-  }
-  image(images[frame], 0, 0);
-
-  textFont(botFont); 
-  fill(255, 253, 248);            // eggshell white
-  textAlign(CENTER);
-  text("Hello! Place your finger on the sensor to measure your stress.", textX, textY);
-}
-
-public void confirmation() {
-  background(0);//clear
-  image(images[3], 0, 0);
-  textFont(botFont); 
-  fill(255, 253, 248);            // eggshell white
-  text("Great! Now stay still while I read your heart rate.", textX, textY);
-}
-
-public void putFingerBack() {
-  frameRate(15);
-  frame++;
-  if (frame == images.length) {
-    frame = 0;
-    delay(PApplet.parseInt(random(1000, 3000)));
-  }
-  image(images[frame], 0, 0);
-}
-
-
-
-
-
-public void keyPressed(){
-// take a picture of the screen by pressign the s key 
- if (key == 's' || key =='S'){
-  saveFrame("HRV-####.jpg");      // take a shot of that!
- }
-// clear the Poncaire plot arrays and clear the phase space by pressing c key 
- if (key == 'c'){
-   for (int i=numPoints-1; i>=0; i--){  // 
-      beatTimeY[i] = 0;
-      beatTimeX[i] = 0;
-    }
- }
-}  // END OF KEYPRESSED
 
 public void serialEvent(Serial port){   
    String inData = port.readStringUntil('\n');  
@@ -408,9 +95,9 @@ public void serialEvent(Serial port){
    if (inData.charAt(0) == 'Q'){          // leading 'Q' means time between beats in milliseconds
      inData = inData.substring(1);        // cut off the leading 'Q'
      inData = trim(inData);               // trim the \n off the end
-     IBI = PApplet.parseInt(inData);                   // convert ascii string to integer IBI 
+     IBI = PApplet.parseInt(inData); 
+     addBeat(IBI);                  // convert ascii string to integer IBI 
      println("IBI: " + IBI);                
-     pulse = true;                        // set the pulse flag
      return;     
    }
    
@@ -424,10 +111,13 @@ public void serialEvent(Serial port){
     if (inData.charAt(0) == 'F'){          // leading 'S' means sensor data
      inData = inData.substring(1);        // cut off the leading 'F'
      inData = trim(inData);               // trim the \n off the end
-     FINGER = PApplet.parseInt(inData);                  // convert the ascii string to FINGER
    return;     
    }  
 }// END OF SERIAL EVENT
+
+public void addBeat(int _beatInterval) {
+  beatIntervals.add(_beatInterval);
+}
   static public void main(String[] passedArgs) {
     String[] appletArgs = new String[] { "pulSensor_STRESSBOT_20130515" };
     if (passedArgs != null) {
