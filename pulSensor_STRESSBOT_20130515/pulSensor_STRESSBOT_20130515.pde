@@ -19,6 +19,7 @@ int pulseRate = 0;        // used to hold pulse rate value from arduino (updated
 int Sensor = 0;           // used to hold raw sensor data from arduino (updated in serialEvent)
 int IBI;                  // length of time between heartbeats in milliseconds (updated in serialEvent)
 int ppgY;                 // used to print the pulse waveform
+int maxppgY = 0;
 
 ArrayList<Integer> beatIntervals; //store each beat interval in an Array List so we can compare multiple values over time
 
@@ -65,9 +66,9 @@ void drawIntervalWaveAsBlobs(int[] _sampleArray) {
   int counter = 0;
   pushStyle();
   noStroke();
-  fill(0, 100);
+  fill(0, map(ppgY, 0, maxppgY, 0, 255));
   for (int i=0; i<_sampleArray.length; i++) { //look through the specified set of interval measurements
-    float yPos = map(_sampleArray[i], 0, 2000, height-30, 30);
+    float yPos = map(_sampleArray[i], 0, maxInterval(), height-30, 30);
     float xPos = map(counter, 0, _sampleArray.length, 30, width-30);
     ellipse(xPos, yPos, 60, 60);
     counter++;
@@ -90,11 +91,11 @@ void drawIntervalWaveAsCurve(int[] _sampleArray) {
   popStyle();
 }
 
-float maxInterval(int[] _sampleArray) { //get the largest value in the sample arrray
+float maxInterval() { //get the largest value in the sample arrray
   float maxVal = 0;
-  for (int i=0; i<_sampleArray.length; i++) {
-    if (_sampleArray[i] > maxVal) {
-      maxVal = _sampleArray[i];
+  for (int i=0; i<beatIntervals.size(); i++) {
+    if (beatIntervals.get(i) > maxVal) {
+      maxVal = beatIntervals.get(i);
     }
   }
   return maxVal;

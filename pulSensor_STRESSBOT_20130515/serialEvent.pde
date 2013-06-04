@@ -14,7 +14,8 @@ void serialEvent(Serial port){
    if (inData.charAt(0) == 'S'){          // leading 'S' means sensor data
      inData = inData.substring(1);        // cut off the leading 'S'
      inData = trim(inData);               // trim the \n off the end
-     ppgY = int(inData);                  // convert the ascii string to ppgY
+     ppgY = int(inData);  
+     println("Beat:" + ppgY);                // convert the ascii string to ppgY
    return;     
    }   
    

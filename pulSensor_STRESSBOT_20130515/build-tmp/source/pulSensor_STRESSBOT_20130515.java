@@ -75,29 +75,37 @@ public void calculateWaveVariance(int _sampleSize) {
     sampleArray[counter] = beatIntervals.get(i);
     counter++;
   }
-  drawIntervalWave(sampleArray);
+  drawIntervalWaveAsBlobs(sampleArray);
 }
 
 
-public void drawIntervalWave(int[] _sampleArray) {
+public void drawIntervalWaveAsBlobs(int[] _sampleArray) {
   int counter = 0;
   pushStyle();
   noStroke();
-  fill(0, 100);
+  fill(0, map(ppgY, 0, 1000, 0, 255));
   for (int i=0; i<_sampleArray.length; i++) { //look through the specified set of interval measurements
-    float yPos = _sampleArray[i];
-    yPos = normalizeIntervalVal(_sampleArray, yPos, height); //get and normalize y-value
+    float yPos = map(_sampleArray[i], 0, 2000, height-30, 30);
     float xPos = map(counter, 0, _sampleArray.length, 30, width-30);
     ellipse(xPos, yPos, 60, 60);
     counter++;
   }
   popStyle();
-
 }
 
-public float normalizeIntervalVal(int[] _sampleArray, float _arrayVal, int _screenSize) {
-  float _val = map(_arrayVal, 0, maxInterval(_sampleArray), 30, _screenSize-30);
-  return _val;
+public void drawIntervalWaveAsCurve(int[] _sampleArray) {
+  int counter = 0;
+  pushStyle();
+  stroke(0, 100);
+  beginShape();
+  for (int i=0; i<_sampleArray.length; i++) { //look through the specified set of interval measurements
+    float yPos = map(_sampleArray[i], 0, 2000, height-30, 30);
+    float xPos = map(counter, 0, _sampleArray.length, 30, width-30);
+    curveVertex(xPos, yPos);
+    counter++;
+  }
+  endShape();
+  popStyle();
 }
 
 public float maxInterval(int[] _sampleArray) { //get the largest value in the sample arrray
@@ -125,7 +133,8 @@ public void serialEvent(Serial port){
    if (inData.charAt(0) == 'S'){          // leading 'S' means sensor data
      inData = inData.substring(1);        // cut off the leading 'S'
      inData = trim(inData);               // trim the \n off the end
-     ppgY = PApplet.parseInt(inData);                  // convert the ascii string to ppgY
+     ppgY = PApplet.parseInt(inData);  
+     println("Beat:" + ppgY);                // convert the ascii string to ppgY
    return;     
    }   
    
