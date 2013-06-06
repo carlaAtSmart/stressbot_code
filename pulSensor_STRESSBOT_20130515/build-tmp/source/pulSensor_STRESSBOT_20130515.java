@@ -37,6 +37,7 @@ int pulseRate = 0;        // used to hold pulse rate value from arduino (updated
 int Sensor = 0;           // used to hold raw sensor data from arduino (updated in serialEvent)
 int IBI;                  // length of time between heartbeats in milliseconds (updated in serialEvent)
 int ppgY;                 // used to print the pulse waveform
+int maxppgY = 0;
 
 ArrayList<Integer> beatIntervals; //store each beat interval in an Array List so we can compare multiple values over time
 
@@ -76,6 +77,7 @@ public void calculateWaveVariance(int _sampleSize) {
     counter++;
   }
   drawIntervalWaveAsBlobs(sampleArray);
+  drawIntervalWaveAsCurve(sampleArray);
 }
 
 
@@ -83,11 +85,11 @@ public void drawIntervalWaveAsBlobs(int[] _sampleArray) {
   int counter = 0;
   pushStyle();
   noStroke();
-  fill(0, map(ppgY, 0, 1000, 0, 255));
+  fill(0, map(ppgY, 0, maxppgY, 200, 10));
   for (int i=0; i<_sampleArray.length; i++) { //look through the specified set of interval measurements
-    float yPos = map(_sampleArray[i], 0, 2000, height-30, 30);
+    float yPos = map(_sampleArray[i], 0, maxInterval(), height-60, 60);
     float xPos = map(counter, 0, _sampleArray.length, 30, width-30);
-    ellipse(xPos, yPos, 60, 60);
+    ellipse(xPos, yPos, map(ppgY, 0, maxppgY, 10, 50), map(ppgY, 0, maxppgY, 10, 50));
     counter++;
   }
   popStyle();
@@ -96,10 +98,11 @@ public void drawIntervalWaveAsBlobs(int[] _sampleArray) {
 public void drawIntervalWaveAsCurve(int[] _sampleArray) {
   int counter = 0;
   pushStyle();
-  stroke(0, 100);
+  noFill();
+  stroke(0);
   beginShape();
   for (int i=0; i<_sampleArray.length; i++) { //look through the specified set of interval measurements
-    float yPos = map(_sampleArray[i], 0, 2000, height-30, 30);
+    float yPos = map(_sampleArray[i], 0, maxInterval(), height-60, 60);
     float xPos = map(counter, 0, _sampleArray.length, 30, width-30);
     curveVertex(xPos, yPos);
     counter++;
@@ -108,11 +111,11 @@ public void drawIntervalWaveAsCurve(int[] _sampleArray) {
   popStyle();
 }
 
-public float maxInterval(int[] _sampleArray) { //get the largest value in the sample arrray
+public float maxInterval() { //get the largest value in the sample arrray
   float maxVal = 0;
-  for (int i=0; i<_sampleArray.length; i++) {
-    if (_sampleArray[i] > maxVal) {
-      maxVal = _sampleArray[i];
+  for (int i=0; i<beatIntervals.size(); i++) {
+    if (beatIntervals.get(i) > maxVal) {
+      maxVal = beatIntervals.get(i);
     }
   }
   return maxVal;
@@ -133,8 +136,11 @@ public void serialEvent(Serial port){
    if (inData.charAt(0) == 'S'){          // leading 'S' means sensor data
      inData = inData.substring(1);        // cut off the leading 'S'
      inData = trim(inData);               // trim the \n off the end
-     ppgY = PApplet.parseInt(inData);  
-     println("Beat:" + ppgY);                // convert the ascii string to ppgY
+     ppgY = PApplet.parseInt(inData); 
+     println("PPG: " + ppgY);
+     if (ppgY > maxppgY) {
+      maxppgY = ppgY;
+     } 
    return;     
    }   
    

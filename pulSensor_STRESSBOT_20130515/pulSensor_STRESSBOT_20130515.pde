@@ -59,6 +59,7 @@ void calculateWaveVariance(int _sampleSize) {
     counter++;
   }
   drawIntervalWaveAsBlobs(sampleArray);
+  drawIntervalWaveAsCurve(sampleArray);
 }
 
 
@@ -66,11 +67,11 @@ void drawIntervalWaveAsBlobs(int[] _sampleArray) {
   int counter = 0;
   pushStyle();
   noStroke();
-  fill(0, map(ppgY, 0, maxppgY, 0, 255));
+  fill(0, map(ppgY, 0, maxppgY, 200, 10));
   for (int i=0; i<_sampleArray.length; i++) { //look through the specified set of interval measurements
-    float yPos = map(_sampleArray[i], 0, maxInterval(), height-30, 30);
+    float yPos = map(_sampleArray[i], 0, maxInterval(), height-60, 60);
     float xPos = map(counter, 0, _sampleArray.length, 30, width-30);
-    ellipse(xPos, yPos, 60, 60);
+    ellipse(xPos, yPos, map(ppgY, 0, maxppgY, 10, 50), map(ppgY, 0, maxppgY, 10, 50));
     counter++;
   }
   popStyle();
@@ -79,10 +80,11 @@ void drawIntervalWaveAsBlobs(int[] _sampleArray) {
 void drawIntervalWaveAsCurve(int[] _sampleArray) {
   int counter = 0;
   pushStyle();
-  stroke(0, 100);
+  noFill();
+  stroke(0);
   beginShape();
   for (int i=0; i<_sampleArray.length; i++) { //look through the specified set of interval measurements
-    float yPos = map(_sampleArray[i], 0, 2000, height-30, 30);
+    float yPos = map(_sampleArray[i], 0, maxInterval(), height-60, 60);
     float xPos = map(counter, 0, _sampleArray.length, 30, width-30);
     curveVertex(xPos, yPos);
     counter++;
