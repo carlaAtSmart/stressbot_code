@@ -61,12 +61,12 @@ port.clear();                    // flush the Serial buffer
 
 //----------------------------------------------------------------
 public void draw() {
-background(255);
-int beatsToMeasure = 20;
+  background(255);
+  int beatsToMeasure = 20;
 if (beatIntervals.size() > beatsToMeasure) { //take beatsToMeasure beats to calibrate
   //drawPoincare();
   calculateWaveVariance(beatsToMeasure); //
-  }  
+}  
 }
 
 public void calculateWaveVariance(int _sampleSize) {
@@ -76,9 +76,9 @@ public void calculateWaveVariance(int _sampleSize) {
     sampleArray[counter] = beatIntervals.get(i);
     counter++;
   }
-  //drawIntervalWaveAsBlobs(sampleArray);
+  drawIntervalWaveAsBlobs(sampleArray);
   drawIntervalWaveAsCurve(sampleArray);
-  drawHeartRate();
+  // drawHeartRate();
 }
 
 public void drawHeartRate() {
@@ -99,11 +99,16 @@ public void drawIntervalWaveAsBlobs(int[] _sampleArray) {
   int counter = 0;
   pushStyle();
   noStroke();
-  fill(0, map(ppgY, 0, maxppgY, 200, 10));
+  fill(120);
+  // fill(0, map(ppgY, 0, maxppgY, 200, 10));
   for (int i=0; i<_sampleArray.length; i++) { //look through the specified set of interval measurements
     float yPos = map(_sampleArray[i], 0, maxInterval(), height-60, 60);
     float xPos = map(counter, 0, _sampleArray.length, 30, width-30);
-    ellipse(xPos, yPos, map(ppgY, 0, maxppgY, 10, 50), map(ppgY, 0, maxppgY, 10, 50));
+    // ellipse(xPos, yPos, map(ppgY, 0, maxppgY, 10, 50), map(ppgY, 0, maxppgY, 10, 50));
+    ellipse(xPos, yPos, 30, 30);
+    if (i == _sampleArray.length-1) {
+      ellipse(xPos, yPos, map(ppgY, 0, maxppgY, 10, 50), map(ppgY, 0, maxppgY, 10, 50));
+    }
     counter++;
   }
   popStyle();
