@@ -15,7 +15,7 @@ void serialEvent(Serial port){
      inData = inData.substring(1);        // cut off the leading 'S'
      inData = trim(inData);               // trim the \n off the end
      ppgY = int(inData); 
-     println("PPG: " + ppgY);
+     // println("PPG: " + ppgY);
      if (ppgY > maxppgY) {
       maxppgY = ppgY;
      } 

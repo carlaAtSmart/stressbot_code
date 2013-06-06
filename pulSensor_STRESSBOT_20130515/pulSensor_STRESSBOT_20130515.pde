@@ -58,10 +58,24 @@ void calculateWaveVariance(int _sampleSize) {
     sampleArray[counter] = beatIntervals.get(i);
     counter++;
   }
-  drawIntervalWaveAsBlobs(sampleArray);
+  //drawIntervalWaveAsBlobs(sampleArray);
   drawIntervalWaveAsCurve(sampleArray);
+  drawHeartRate();
 }
 
+void drawHeartRate() {
+  pushStyle();
+  ellipseMode(CENTER);
+  rectMode(CENTER);
+  pushStyle();
+  noFill();
+  stroke(0);
+  rect(width-100, height-100, 70, 70);
+  popStyle();
+  ellipse(width-100, height-100, map(ppgY, 0, maxppgY, 10, 50), map(ppgY, 0, maxppgY, 10, 50));
+  popStyle();
+  // int calcBeatsPerMinute
+}
 
 void drawIntervalWaveAsBlobs(int[] _sampleArray) {
   int counter = 0;

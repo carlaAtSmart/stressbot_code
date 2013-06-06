@@ -76,10 +76,24 @@ public void calculateWaveVariance(int _sampleSize) {
     sampleArray[counter] = beatIntervals.get(i);
     counter++;
   }
-  drawIntervalWaveAsBlobs(sampleArray);
+  //drawIntervalWaveAsBlobs(sampleArray);
   drawIntervalWaveAsCurve(sampleArray);
+  drawHeartRate();
 }
 
+public void drawHeartRate() {
+  pushStyle();
+  ellipseMode(CENTER);
+  rectMode(CENTER);
+  pushStyle();
+  noFill();
+  stroke(0);
+  rect(width-100, height-100, 70, 70);
+  popStyle();
+  ellipse(width-100, height-100, map(ppgY, 0, maxppgY, 10, 50), map(ppgY, 0, maxppgY, 10, 50));
+  popStyle();
+  // int calcBeatsPerMinute
+}
 
 public void drawIntervalWaveAsBlobs(int[] _sampleArray) {
   int counter = 0;
@@ -137,7 +151,7 @@ public void serialEvent(Serial port){
      inData = inData.substring(1);        // cut off the leading 'S'
      inData = trim(inData);               // trim the \n off the end
      ppgY = PApplet.parseInt(inData); 
-     println("PPG: " + ppgY);
+     // println("PPG: " + ppgY);
      if (ppgY > maxppgY) {
       maxppgY = ppgY;
      } 
