@@ -44,24 +44,26 @@ port.clear();                    // flush the Serial buffer
 //----------------------------------------------------------------
 void draw() {
   background(255);
-  int beatsToMeasure = 20;
-if (beatIntervals.size() > beatsToMeasure) { //take beatsToMeasure beats to calibrate
-  //drawPoincare();
-  calculateWaveVariance(beatsToMeasure); //
+  int beatsCount = 20;
+  //TODO: handle face and intro
+if (beatIntervals.size() > beatsCount) { //take beatsCount beats to calibrate
+  int[] intervalSamples = getSampleArray(beatsCount);
+  //TODO: draw sine wave
+  drawIntervalWaveAsBlobs(intervalSamples); //draw teh blob version of the beat intervals
+  drawIntervalWaveAsCurve(intervalSamples); //draw the curve version of the beat intervals
 }  
 }
 
-void calculateWaveVariance(int _sampleSize) {
-  int[] sampleArray = new int[_sampleSize];
-  int counter = 0;
-  for (int i=beatIntervals.size()-_sampleSize; i<beatIntervals.size(); i++) { //load native array with sample values
-    sampleArray[counter] = beatIntervals.get(i);
-    counter++;
+int[] getSampleArray(int _sampleArraySize) {
+  int[] _sampleIntervals = new int[_sampleArraySize];
+  int _counter = 0;
+  for(int i=beatIntervals.size()-_sampleArraySize; i<beatIntervals.size(); i++) {
+    _sampleIntervals[_counter] = beatIntervals.get(i);
+    _counter++;
   }
-  drawIntervalWaveAsBlobs(sampleArray);
-  drawIntervalWaveAsCurve(sampleArray);
-  // drawHeartRate();
+  return _sampleIntervals;
 }
+
 
 void drawHeartRate() {
   pushStyle();
