@@ -31,6 +31,7 @@ boolean fingerIsInserted = true; //set true in serialEvent when photocell is act
 
 
 void setup() {
+  frameRate(20);
   background(255);
   size(1024, 600); // Stage size
   // screenMask = loadImage("stressbot-screen-mask.png");
@@ -51,39 +52,60 @@ void draw() {
     //TODO: draw wakwup animation
     if (fingerIsInserted) {
       //TODO: draw intro animation
-      sineCurveStart = drawSineCurve(sineCurveStart);
-      if (beatIntervals.size() > beatsCount) { //take beatsCount beats to calibrate
-        int[] intervalSamples = getSampleArray(beatsCount);
-        ibiCurveStart = drawIntervalWaveAsCurve(intervalSamples, ibiCurveStart); //draw the curve version of the beat intervals
+      if(beatIntervals.size() <= beatsCount) {
+        drawHeartRate(width/2, height/2);
+        pushStyle();
+          textSize(40);
+          fill(175);
+          text(beatsCount - beatIntervals.size(), width/2, (height/2)-60);
+        popStyle();
+      }
+      else { //take beatsCount beats to calibrate
+        sineCurveStart = drawSineCurve(sineCurveStart);
+        drawHeartRate(width-80, height-80);
+        ibiCurveStart = drawIntervalWaveAsCurve(ibiCurveStart); //draw the curve version of the beat intervals
         }
       }
     }
   }
 
-int[] getSampleArray(int _sampleArraySize) {
-  int[] _sampleIntervals = new int[_sampleArraySize];
-  int _counter = 0;
-  for (int i=beatIntervals.size()-_sampleArraySize; i<beatIntervals.size(); i++) {
-    _sampleIntervals[_counter] = beatIntervals.get(i);
-    _counter++;
-  }
-  return _sampleIntervals;
-}
-
-void drawHeartRate() {
+void drawHeartRate(int _xPos, int _yPos) {
   pushStyle();
   ellipseMode(CENTER);
   rectMode(CENTER);
   pushStyle();
   noFill();
   stroke(0);
-  rect(width-100, height-100, 70, 70);
+  rect(_xPos, _yPos, 70, 70);
   popStyle();
-  noStroke();
-  fill(200);
-  ellipse(width-100, height-100, map(ppgY, 0, maxppgY, 10, 50), map(ppgY, 0, maxppgY, 10, 50));
+  fill(map(ppgY, 0, maxppgY, 200, 40));
+  ellipse(_xPos, _yPos, map(ppgY, 0, maxppgY, 10, 50), map(ppgY, 0, maxppgY, 10, 50));
   popStyle();
   // int calcBeatsPerMinute
+}
+
+float ibiCurveStart = 0;
+
+float drawIntervalWaveAsCurve(float xStart) {
+  float interval = width/(beatsCount-4);
+  float xPos = xStart-interval; //set the first point off-screen as it is a control point and won't be drawn
+  pushMatrix();
+    translate(0, height/2); //move vertical origin to center of screen. This will likely change to accomodate the frame overlay
+    pushStyle();
+      noFill();
+      strokeWeight(20);
+      smooth();
+      stroke(0);
+      beginShape();
+      for (int i=0; i<beatIntervals.size(); i++) {  //step through the set of interval vals
+        float yPos = map(beatIntervals.get(i), 0, 1500, -250, 250); 
+        curveVertex(xPos, yPos);
+        xPos+=interval;
+      }
+      endShape();
+    popStyle();
+  popMatrix();
+  return xStart-1;
 }
 
 void drawIntervalWaveAsBlobs(int[] _sampleArray) {
@@ -101,30 +123,6 @@ void drawIntervalWaveAsBlobs(int[] _sampleArray) {
     counter++;
   }
   popStyle();
-}
-
-float ibiCurveStart = 0;
-
-float drawIntervalWaveAsCurve(int[] _sampleArray, float xStart) {
-  float interval = width/(_sampleArray.length-4); //get the x-interval for each data point but strip the first and last
-  float xPos = xStart-interval; //set the first point off-screen as it is a control point and won't be drawn
-  pushMatrix();
-    translate(0, height/2); //move vertical origin to center of screen. This will likely change to accomodate the frame overlay
-    pushStyle();
-      noFill();
-      strokeWeight(20);
-      smooth();
-      stroke(0);
-      beginShape();
-      for (int i=0; i<_sampleArray.length; i++) {  //step through the set of interval vals
-        float yPos = map(_sampleArray[i], 0, maxInterval(), -150, 150); 
-        curveVertex(xPos, yPos);
-        xPos+=interval;
-      }
-      endShape();
-    popStyle();
-  popMatrix();
-  return xStart-1;
 }
 
 float maxInterval() { //get the largest value in the sample arrray
