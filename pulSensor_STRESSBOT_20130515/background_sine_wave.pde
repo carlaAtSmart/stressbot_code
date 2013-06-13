@@ -1,8 +1,8 @@
 // Variables to control background sine wave
-float waveStart = 0;
+float sineCurveStart = 0;
 
 float drawSineCurve(float xStart){
-	float _waveLength = width/6;
+	float _waveLength = width/5;
 	pushStyle();
 		smooth();
 		noFill();
@@ -11,12 +11,11 @@ float drawSineCurve(float xStart){
 			translate(0, height/2); //move the coordinate system down to the middle of the screen
 			strokeWeight(1);
 			stroke(180);
-			// line(0, 0, width, 0);
-			strokeWeight(50);
-			stroke(100);
+			strokeWeight(25);
+			stroke(200);
 			beginShape(); //start drawing the curve
-				float yPos = 200; //height of curve
-				float controlLength = _waveLength/1.8;
+				float yPos = 150; //height of curve
+				float controlLength = _waveLength/2;
 				vertex(xStart, yPos);
 				for(float i=xStart; i<width+_waveLength; i+=_waveLength){
 					//calculate first control point
