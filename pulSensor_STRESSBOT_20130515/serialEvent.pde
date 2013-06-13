@@ -22,14 +22,16 @@ void serialEvent(Serial port) {
   if (inData.charAt(0) == 'F') {          // leading 'F' means finger data
     inData = inData.substring(1);        // cut off the leading 'F'
     inData = trim(inData);               // trim the \n off the end
-    if (inData == 1) ;//set finger flag
+    if (inData == 1) 
+    fingerIsInserted = true;             //set finger flag
     return;
   }
 
   if (inData.charAt(0) == 'P') {        // leading 'P' means prox sensor data
     inData = inData.substring(1);       // cut off leading 'P'
     inData = trim(inData);              // trim the \n off the end
-    if (inData == 1) ; //set proximity flag
+    if (inData == 1) 
+    personIsNear = true;                //set proximity flag
     return;
   }
 }// END OF SERIAL EVENT
