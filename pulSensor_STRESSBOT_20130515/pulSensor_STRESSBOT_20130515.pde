@@ -22,7 +22,7 @@ int ppgY;                 // used to print the pulse waveform
 int maxppgY = 0;
 
 ArrayList<Integer> beatIntervals; //store each beat interval in an Array List so we can compare multiple values over time
-int beatsCount = 22; //number of beats to sample from the ArrayList
+int beatsCount = 24; //number of beats to sample from the ArrayList
 
 // initializing flags here
 boolean pulse = false;    // made true in serialEvent when processing gets new IBI value from arduino
@@ -106,7 +106,7 @@ void drawIntervalWaveAsBlobs(int[] _sampleArray) {
 float ibiCurveStart = 0;
 
 float drawIntervalWaveAsCurve(int[] _sampleArray, float xStart) {
-  float interval = width/(_sampleArray.length-2); //get the x-interval for each data point but strip the first and last
+  float interval = width/(_sampleArray.length-4); //get the x-interval for each data point but strip the first and last
   float xPos = xStart-interval; //set the first point off-screen as it is a control point and won't be drawn
   pushMatrix();
     translate(0, height/2); //move vertical origin to center of screen. This will likely change to accomodate the frame overlay
