@@ -35,8 +35,9 @@ int pulsePin = 0;                 // Pulse Sensor purple wire connected to analo
 int blinkPin = 13;                // pin to blink led at each beat
 int fadePin = 5;                  // pin to do fancy classy fading blink at each beat
 int fadeRate = 0;                 // used to fade LED on with PWM on fadePin
-int Finger = 0;                   //photocell indicates if finger is in place
-int photoCellPin = A1;
+int Finger = 0;                   // photocell indicates if finger is in place
+int photoCellPin = A1;            // pin for Photocell sensor
+int proxSensorPin = A2;           // pin for proximity sensor
 
 
 // these variables are volatile because they are used during the interrupt service routine!
@@ -62,19 +63,23 @@ void setup(){
 
 void loop(){
 
+  //detect if someone is near the stressbot
+  //uses a maxbotix untrasonic rangefinder 
+  //TODO: dial in sensor values
+  //TODO: possibly add an analog curve as person gets closer
+  if(analogRead(proxSensorPin) > 500){ //sensor detects a person near the stressbot
+    sendDataToProcessing('P', 1);
+  }
+
   //use this line if the finger keeps getting deregistred constantly
   //had to make Finger = 1 persistent to get it to work
-  if(analogRead(photoCellPin) >0 && Finger == 0){ 
-
-    //if everything is working fine and your finger registres without issue
-    //comment the if line above and uncomment the if line below
-    //if(analogRead(photoCellPin) >0 && Finger == 0){ //use this line 
+  if(analogRead(photoCellPin) > 0 && Finger == 0){ 
     Finger = 0;
   }
   else{
     Finger = 1;
-
   }
+
 
   sendDataToProcessing('S', Signal);     // send Processing the raw P
   sendDataToProcessing('F', Finger);    //letProcessing know if there is a finger 
