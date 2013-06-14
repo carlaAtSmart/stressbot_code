@@ -78,10 +78,9 @@ void drawHeartRate(int _xPos, int _yPos) {
   stroke(0);
   rect(_xPos, _yPos, 70, 70);
   popStyle();
-  fill(map(ppgY, 0, maxppgY, 200, 40));
+  fill(map(ppgY, 0, maxppgY, 230, 25));
   ellipse(_xPos, _yPos, map(ppgY, 0, maxppgY, 10, 50), map(ppgY, 0, maxppgY, 10, 50));
   popStyle();
-  // int calcBeatsPerMinute
 }
 
 float ibiCurveStart = 0;
@@ -98,7 +97,7 @@ float drawIntervalWaveAsCurve(float xStart) {
       stroke(0);
       beginShape();
       for (int i=0; i<beatIntervals.size(); i++) {  //step through the set of interval vals
-        float yPos = map(beatIntervals.get(i), 0, 1500, -250, 250); 
+        float yPos = map(beatIntervals.get(i), 0, 1500, -150, 150); 
         curveVertex(xPos, yPos);
         xPos+=interval;
       }
