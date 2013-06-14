@@ -52,14 +52,7 @@ void draw() {
     //TODO: draw wakwup animation
     if (fingerIsInserted) {
       //TODO: draw intro animation
-      if(beatIntervals.size() <= beatsCount) {
-        drawHeartRate(width/2, height/2);
-        pushStyle();
-          textSize(40);
-          fill(175);
-          text(beatsCount - beatIntervals.size(), width/2, (height/2)-60);
-        popStyle();
-      }
+      if(beatIntervals.size() <= beatsCount) introHeartBeat();
       else { //take beatsCount beats to calibrate
         sineCurveStart = drawSineCurve(sineCurveStart);
         drawHeartRate(width-80, height-80);

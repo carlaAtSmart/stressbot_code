@@ -70,14 +70,7 @@ public void draw() {
     //TODO: draw wakwup animation
     if (fingerIsInserted) {
       //TODO: draw intro animation
-      if(beatIntervals.size() <= beatsCount) {
-        drawHeartRate(width/2, height/2);
-        pushStyle();
-          textSize(40);
-          fill(175);
-          text(beatsCount - beatIntervals.size(), width/2, (height/2)-60);
-        popStyle();
-      }
+      if(beatIntervals.size() <= beatsCount) introHeartBeat();
       else { //take beatsCount beats to calibrate
         sineCurveStart = drawSineCurve(sineCurveStart);
         drawHeartRate(width-80, height-80);
@@ -86,6 +79,99 @@ public void draw() {
       }
     }
   }
+
+// Variables to control background sine wave
+float sineCurveStart = 0;
+
+public float drawSineCurve(float xStart){
+	float _waveLength = width/5;
+	pushStyle();
+		smooth();
+		noFill();
+		ellipseMode(CENTER);
+		pushMatrix();
+			translate(0, height/2); //move the coordinate system down to the middle of the screen
+			strokeWeight(1);
+			stroke(180);
+			strokeWeight(25);
+			stroke(200);
+			beginShape(); //start drawing the curve
+				float yPos = 150; //height of curve
+				float controlLength = _waveLength/2;
+				vertex(xStart, yPos);
+				for(float i=xStart; i<width+_waveLength; i+=_waveLength){
+					//calculate first control point
+					float cp1X = i+controlLength;
+					//calculate next point on curve
+					float nextPtX = i+_waveLength;
+					//calculate second control point
+					float cp2X = nextPtX-controlLength;
+					bezierVertex(cp1X, yPos, cp2X, yPos*-1, nextPtX, yPos*-1);
+					yPos*=-1;					
+				}
+			endShape();
+		popMatrix();
+	popStyle();
+	return xStart-1;
+}
+public float getAverageIBI() {
+  float _bpmAvg = 0;
+  for (int i=0; i<beatIntervals.size(); i++) {
+    _bpmAvg += beatIntervals.get(i); //add up all the IBI values
+  }
+  return _bpmAvg / beatIntervals.size(); //get the average IBI value
+}
+
+public int getAverageBPM() {
+  float _avgIBI = getAverageIBI(); //get the average interbeat interval in seconds
+  return round(60/_avgIBI); //divide 60 by the average IBI to get BPM. Round and return as int
+}
+
+public float getAvgIBIDelta() {
+	int[] _deltaVals = new int[beatIntervals.size()-1];
+	for (int i=0; i<_deltaVals.length; i++) {
+		_deltaVals[i] = beatIntervals.get(i+1) - beatIntervals.get(i); //fill the _deltaVals array with the difference between IBIs
+	}
+	float _totalDelta = 0;
+	for (int i=0; i<_deltaVals.length; i++) {
+		_totalDelta += _deltaVals[i]; //add up the delta values
+	}
+	return _totalDelta / _deltaVals.length; //return the average delta value
+}
+
+// int getIBICycleLength() {
+// 	int _startBeat = -1;
+// 	for (int i=0; i<beatIntervals.size(); i++) {
+// 		if (beatIntervals.get(i) == beatIntervals.min()) {
+// 			_startBeat = i; //should be the trough of a wave
+// 		}
+// 		if (_startBeat > -1) {
+// 			if (beatIntervals.get(i+1) < beatIntervals.get(i)) {
+// 				return i - _startBeat; //should be the length of half a wave
+// 			}
+// 		}
+// 	}
+// }
+public void introHeartBeat() {
+  pushMatrix();
+    translate(width/2, height/2);
+    pushStyle();
+      noStroke();
+      fill(map(ppgY, 0, maxppgY, 255, 200));
+      for (int i=0; i<beatsCount; i++) {
+        float _size = map(beatsCount-beatIntervals.size(), 0, beatsCount, 0, height-25);
+        ellipse(0, 0, _size, _size);
+      }
+    popStyle();
+    drawHeartRate(0,0);
+    pushStyle();
+      textAlign(CENTER);
+      fill(0);
+      textSize(30);
+      text(str(getAverageBPM()), 0, 100);
+    popStyle();
+  popMatrix();
+}
 
 public void drawHeartRate(int _xPos, int _yPos) {
   pushStyle();
@@ -150,70 +236,6 @@ public float maxInterval() { //get the largest value in the sample arrray
     }
   }
   return maxVal;
-}
-// Variables to control background sine wave
-float sineCurveStart = 0;
-
-public float drawSineCurve(float xStart){
-	float _waveLength = width/5;
-	pushStyle();
-		smooth();
-		noFill();
-		ellipseMode(CENTER);
-		pushMatrix();
-			translate(0, height/2); //move the coordinate system down to the middle of the screen
-			strokeWeight(1);
-			stroke(180);
-			strokeWeight(25);
-			stroke(200);
-			beginShape(); //start drawing the curve
-				float yPos = 150; //height of curve
-				float controlLength = _waveLength/2;
-				vertex(xStart, yPos);
-				for(float i=xStart; i<width+_waveLength; i+=_waveLength){
-					//calculate first control point
-					float cp1X = i+controlLength;
-					//calculate next point on curve
-					float nextPtX = i+_waveLength;
-					//calculate second control point
-					float cp2X = nextPtX-controlLength;
-					bezierVertex(cp1X, yPos, cp2X, yPos*-1, nextPtX, yPos*-1);
-					yPos*=-1;					
-				}
-			endShape();
-		popMatrix();
-	popStyle();
-	return xStart-1;
-}
-public float getAverageIBI() {
-  float _bpmAvg = 0;
-  for (int i=0; i<beatIntervals.size(); i++) {
-    _bpmAvg += beatIntervals.get(i); //add up all the IBI values
-  }
-  return _bpmAvg / beatIntervals.size(); //get the average IBI value
-}
-
-public int getAverageBPM() {
-  float _avgIBI = getAverageIBI(); //get the average Interbeat interval in seconds
-  return round(60/_avgIBI); //divide 60 by the average IBI to get BPM. Round and return as int
-}
-
-public float getAvgIBIDelta() {
-	int[] _deltaVals = new int[beatIntervals.size()-1];
-	for (int i=0; i<_deltaVals.length; i++) {
-		_deltaVals[i] = beatIntervals.get(i+1) - beatIntervals.get(i); //fill the _deltaVals array with the difference between IBIs
-	}
-	float _totalDelta = 0;
-	for (int i=0; i<_deltaVals.length; i++) {
-		_totalDelta += _deltaVals[i]; //add up the delta values
-	}
-	return _totalDelta / _deltaVals.length; //return the average delta value
-}
-
-public int getIBICycleLength() {
-	IntList sortedBeats = beatIntervals.copy();
-	return 1;
-
 }
 
 public void serialEvent(Serial port) {   

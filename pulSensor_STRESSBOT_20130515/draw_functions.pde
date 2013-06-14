@@ -1,11 +1,11 @@
 void introHeartBeat() {
   pushMatrix();
-    translate(width/2. height/2);
-    pushStyle():
+    translate(width/2, height/2);
+    pushStyle();
       noStroke();
       fill(map(ppgY, 0, maxppgY, 255, 200));
       for (int i=0; i<beatsCount; i++) {
-        float _size = map(beatCount-beatIntervals(size), 0, beatsCount, 0, height-25);
+        float _size = map(beatsCount-beatIntervals.size(), 0, beatsCount, 0, height-25);
         ellipse(0, 0, _size, _size);
       }
     popStyle();
@@ -14,9 +14,9 @@ void introHeartBeat() {
       textAlign(CENTER);
       fill(0);
       textSize(30);
-      text(getAverageBPM(), 0, 100);
+      text(str(getAverageBPM()), 0, 100);
     popStyle();
-  popMatrix(;)
+  popMatrix();
 }
 
 void drawHeartRate(int _xPos, int _yPos) {
