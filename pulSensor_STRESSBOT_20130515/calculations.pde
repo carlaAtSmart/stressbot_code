@@ -8,7 +8,7 @@ float getAverageIBI() {
 
 int getAverageBPM() {
   float _avgIBI = getAverageIBI(); //get the average Interbeat interval in seconds
-  return round(60/_avgIBI); //divide 60 by the avrage IBI to get BPM. Round and return as int
+  return round(60/_avgIBI); //divide 60 by the average IBI to get BPM. Round and return as int
 }
 
 float getAvgIBIDelta() {
@@ -24,11 +24,13 @@ float getAvgIBIDelta() {
 }
 
 int getIBICycleLength() {
-	int _firstLowPpint = beatIntervals.get(0);
-	int _firstHighPoint = beatIntervals.get(0);
-	long _startTime = 0;
-	int _waveLengthBeats = 0;
+	int _lowIBIPoint = beatIntervals.get(0);
+	int _highIBIPoint = beatIntervals.get(0);
+	long _startMillis = 0;
+	int _startBeat = 0;
 	for (int i=0; i<beatIntervals.size(); i++) {
-		
+		if (beatIntervals.get(i) < _lowIBIPoint) _lowIBIPoint = beatIntervals.get(i);
+		else if (_startMillis == 0 && _startBeat == 0)
+		if (beatIntervals.get(i) > _highIBIPoint) _highIBIPoint = beatIntervals.get(i);
 	}
 }

@@ -21,7 +21,7 @@ int IBI;                  // length of time between heartbeats in milliseconds (
 int ppgY;                 // used to print the pulse waveform
 int maxppgY = 0;
 
-ArrayList<Integer> beatIntervals; //store each beat interval in an Array List so we can compare multiple values over time
+IntList beatIntervals; //store each beat interval in an Array List so we can compare multiple values over time
 int beatsCount = 24; //number of beats to sample from the ArrayList
 
 // initializing flags here
@@ -36,7 +36,7 @@ void setup() {
   size(1024, 600); // Stage size
   // screenMask = loadImage("stressbot-screen-mask.png");
 
-  beatIntervals = new ArrayList(); //create empty array list
+  beatIntervals = new IntList(); //create empty array list
 
     // FIND AND ESTABLISH CONTACT WITH THE SERIAL PORT
   println(Serial.list());       // print a list of available serial ports

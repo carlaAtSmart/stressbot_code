@@ -6,7 +6,7 @@ void serialEvent(Serial port) {
     inData = inData.substring(1);        // cut off the leading 'Q'
     inData = trim(inData);               // trim the \n off the end
     IBI = int(inData);                  // convert ascii string to integer IBI 
-    beatIntervals.add(IBI);              // add this beat to the ArrayList
+    beatIntervals.append(IBI);              // add this beat to the ArrayList
     // println("IBI: " + IBI);                
     return;
   }
