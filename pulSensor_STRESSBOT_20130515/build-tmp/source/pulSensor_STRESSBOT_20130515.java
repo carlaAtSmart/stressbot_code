@@ -39,7 +39,7 @@ int IBI;                  // length of time between heartbeats in milliseconds (
 int ppgY;                 // used to print the pulse waveform
 int maxppgY = 0;
 
-ArrayList<Integer> beatIntervals; //store each beat interval in an Array List so we can compare multiple values over time
+IntList beatIntervals; //store each beat interval in an Array List so we can compare multiple values over time
 int beatsCount = 24; //number of beats to sample from the ArrayList
 
 // initializing flags here
@@ -54,7 +54,7 @@ public void setup() {
   size(1024, 600); // Stage size
   // screenMask = loadImage("stressbot-screen-mask.png");
 
-  beatIntervals = new ArrayList(); //create empty array list
+  beatIntervals = new IntList(); //create empty array list
 
     // FIND AND ESTABLISH CONTACT WITH THE SERIAL PORT
   println(Serial.list());       // print a list of available serial ports
@@ -99,7 +99,6 @@ public void drawHeartRate(int _xPos, int _yPos) {
   fill(map(ppgY, 0, maxppgY, 230, 25));
   ellipse(_xPos, _yPos, map(ppgY, 0, maxppgY, 10, 50), map(ppgY, 0, maxppgY, 10, 50));
   popStyle();
-  // int calcBeatsPerMinute
 }
 
 float ibiCurveStart = 0;
@@ -186,6 +185,36 @@ public float drawSineCurve(float xStart){
 	popStyle();
 	return xStart-1;
 }
+public float getAverageIBI() {
+  float _bpmAvg = 0;
+  for (int i=0; i<beatIntervals.size(); i++) {
+    _bpmAvg += beatIntervals.get(i); //add up all the IBI values
+  }
+  return _bpmAvg / beatIntervals.size(); //get the average IBI value
+}
+
+public int getAverageBPM() {
+  float _avgIBI = getAverageIBI(); //get the average Interbeat interval in seconds
+  return round(60/_avgIBI); //divide 60 by the average IBI to get BPM. Round and return as int
+}
+
+public float getAvgIBIDelta() {
+	int[] _deltaVals = new int[beatIntervals.size()-1];
+	for (int i=0; i<_deltaVals.length; i++) {
+		_deltaVals[i] = beatIntervals.get(i+1) - beatIntervals.get(i); //fill the _deltaVals array with the difference between IBIs
+	}
+	float _totalDelta = 0;
+	for (int i=0; i<_deltaVals.length; i++) {
+		_totalDelta += _deltaVals[i]; //add up the delta values
+	}
+	return _totalDelta / _deltaVals.length; //return the average delta value
+}
+
+public int getIBICycleLength() {
+	IntList sortedBeats = beatIntervals.copy();
+	return 1;
+
+}
 
 public void serialEvent(Serial port) {   
   String inData = port.readStringUntil('\n');  
@@ -194,7 +223,7 @@ public void serialEvent(Serial port) {
     inData = inData.substring(1);        // cut off the leading 'Q'
     inData = trim(inData);               // trim the \n off the end
     IBI = PApplet.parseInt(inData);                  // convert ascii string to integer IBI 
-    beatIntervals.add(IBI);              // add this beat to the ArrayList
+    beatIntervals.append(IBI);              // add this beat to the ArrayList
     // println("IBI: " + IBI);                
     return;
   }

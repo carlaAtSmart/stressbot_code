@@ -24,13 +24,13 @@ float getAvgIBIDelta() {
 }
 
 int getIBICycleLength() {
-	int _lowIBIPoint = beatIntervals.get(0);
-	int _highIBIPoint = beatIntervals.get(0);
-	long _startMillis = 0;
-	int _startBeat = 0;
+	int _startBeat = -1;
 	for (int i=0; i<beatIntervals.size(); i++) {
-		if (beatIntervals.get(i) < _lowIBIPoint) _lowIBIPoint = beatIntervals.get(i);
-		else if (_startMillis == 0 && _startBeat == 0)
-		if (beatIntervals.get(i) > _highIBIPoint) _highIBIPoint = beatIntervals.get(i);
+		if (beatIntervals.get(i) == beatIntervals.min()) _startBeat = i; //should be the trough of a wave
+		if (_startBeat > -1) {
+			if (beatIntervals.get(i+1) < beatIntervals.get(i)) {
+				return i - _startBeat; //should be the length of half a wave
+			}
+		}
 	}
 }
