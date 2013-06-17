@@ -39,8 +39,11 @@ int IBI;                  // length of time between heartbeats in milliseconds (
 int ppgY;                 // used to print the pulse waveform
 int maxppgY = 0;
 
-IntList beatIntervals; //store each beat interval in an Array List so we can compare multiple values over time
-int beatsCount = 24; //number of beats to sample from the ArrayList
+IntList beatIntervals; //store each beat interval in an IntList so we can compare multiple values over time
+int beatsCount = 24; //number of beats to sample from the IntList
+
+float sineCurveStart = 0; //intitialize default point to start the sivewave
+
 
 // initializing flags here
 boolean pulse = false;    // made true in serialEvent when processing gets new IBI value from arduino
@@ -69,8 +72,11 @@ public void draw() {
   if (personIsNear) {
     //TODO: draw wakwup animation
     if (fingerIsInserted) {
-      //TODO: draw intro animation
-      if(beatIntervals.size() <= beatsCount) introHeartBeat();
+      //draw intro animation
+      if(beatIntervals.size() == beatsCount) sineCurveStart = getIBICycleCrestPoint();
+      if(beatIntervals.size() <= beatsCount) {
+        introHeartBeat();
+      }
       else { //take beatsCount beats to calibrate
         sineCurveStart = drawSineCurve(sineCurveStart);
         drawHeartRate(width-80, height-80);
@@ -78,11 +84,10 @@ public void draw() {
         }
       }
     }
+    println (getAverageIBI());
   }
 
 // Variables to control background sine wave
-float sineCurveStart = 0;
-
 public float drawSineCurve(float xStart){
 	float _waveLength = width/5;
 	pushStyle();
@@ -100,7 +105,7 @@ public float drawSineCurve(float xStart){
 				float controlLength = _waveLength/2;
 				vertex(xStart, yPos);
 				for(float i=xStart; i<width+_waveLength; i+=_waveLength){
-					//calculate first control point
+					//calculate first control point at the bottom fo the wave
 					float cp1X = i+controlLength;
 					//calculate next point on curve
 					float nextPtX = i+_waveLength;
@@ -123,7 +128,7 @@ public float getAverageIBI() {
 }
 
 public int getAverageBPM() {
-  float _avgIBI = getAverageIBI(); //get the average interbeat interval in seconds
+  float _avgIBI = getAverageIBI()/1000; //get the average interbeat interval in 
   return round(60/_avgIBI); //divide 60 by the average IBI to get BPM. Round and return as int
 }
 
@@ -139,19 +144,27 @@ public float getAvgIBIDelta() {
 	return _totalDelta / _deltaVals.length; //return the average delta value
 }
 
-// int getIBICycleLength() {
-// 	int _startBeat = -1;
-// 	for (int i=0; i<beatIntervals.size(); i++) {
-// 		if (beatIntervals.get(i) == beatIntervals.min()) {
-// 			_startBeat = i; //should be the trough of a wave
-// 		}
-// 		if (_startBeat > -1) {
-// 			if (beatIntervals.get(i+1) < beatIntervals.get(i)) {
-// 				return i - _startBeat; //should be the length of half a wave
-// 			}
-// 		}
-// 	}
-// }
+public int getIBICycleLength() {
+	int _startBeat = -1;
+	for (int i=0; i<beatIntervals.size(); i++) {
+		if (beatIntervals.get(i) == beatIntervals.min()) {
+			_startBeat = i; //should be the trough of a wave
+		}
+		if (_startBeat > -1) {
+			if (beatIntervals.get(i+1) < beatIntervals.get(i)) {
+				return i - _startBeat; //should be the length of half a wave
+			}
+		}
+	}
+	return -1;
+}
+
+public int getIBICycleCrestPoint() { //get the lowest point of the first IBI cycle. This is used to sync up the IBI wave with the sample sine wave
+	for (int i=0; i<beatIntervals.size(); i++) {
+		if (beatIntervals.get(i) == beatIntervals.max()) return i;
+	}
+	return -1;
+}
 public void introHeartBeat() {
   pushMatrix();
     translate(width/2, height/2);

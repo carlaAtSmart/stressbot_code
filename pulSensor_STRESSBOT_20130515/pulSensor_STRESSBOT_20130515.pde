@@ -21,8 +21,11 @@ int IBI;                  // length of time between heartbeats in milliseconds (
 int ppgY;                 // used to print the pulse waveform
 int maxppgY = 0;
 
-IntList beatIntervals; //store each beat interval in an Array List so we can compare multiple values over time
-int beatsCount = 24; //number of beats to sample from the ArrayList
+IntList beatIntervals; //store each beat interval in an IntList so we can compare multiple values over time
+int beatsCount = 24; //number of beats to sample from the IntList
+
+float sineCurveStart = 0; //intitialize default point to start the sivewave
+
 
 // initializing flags here
 boolean pulse = false;    // made true in serialEvent when processing gets new IBI value from arduino
@@ -51,8 +54,11 @@ void draw() {
   if (personIsNear) {
     //TODO: draw wakwup animation
     if (fingerIsInserted) {
-      //TODO: draw intro animation
-      if(beatIntervals.size() <= beatsCount) introHeartBeat();
+      //draw intro animation
+      if(beatIntervals.size() == beatsCount) sineCurveStart = getIBICycleCrestPoint();
+      if(beatIntervals.size() <= beatsCount) {
+        introHeartBeat();
+      }
       else { //take beatsCount beats to calibrate
         sineCurveStart = drawSineCurve(sineCurveStart);
         drawHeartRate(width-80, height-80);
@@ -60,5 +66,6 @@ void draw() {
         }
       }
     }
+    println (getAverageIBI());
   }
 
