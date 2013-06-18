@@ -76,47 +76,14 @@ public void draw() {
       if(beatIntervals.size() == beatsCount) sineCurveStart = getIBICycleCrestPoint();
       if(beatIntervals.size() <= beatsCount) introHeartBeat();
       else { //take beatsCount beats to calibrate
+        // background(map(ppgY, 0, maxppgY, ));
         sineCurveStart = drawSineCurve(sineCurveStart);
-        drawHeartRate(width-80, height-80);
         ibiCurveStart = drawIntervalWaveAsCurve(ibiCurveStart); //draw the curve version of the beat intervals
-        println(getAvgIBIDelta());
         }
       }
     }
   }
 
-// Variables to control background sine wave
-public float drawSineCurve(float xStart){
-	float _waveLength = width/5;
-	pushStyle();
-		smooth();
-		noFill();
-		ellipseMode(CENTER);
-		pushMatrix();
-			translate(0, height/2); //move the coordinate system down to the middle of the screen
-			strokeWeight(1);
-			stroke(180);
-			strokeWeight(25);
-			stroke(200);
-			beginShape(); //start drawing the curve
-				float yPos = 150; //height of curve
-				float controlLength = _waveLength/2;
-				vertex(xStart, yPos);
-				for(float i=xStart; i<width+_waveLength; i+=_waveLength){
-					//calculate first control point at the bottom fo the wave
-					float cp1X = i+controlLength;
-					//calculate next point on curve
-					float nextPtX = i+_waveLength;
-					//calculate second control point
-					float cp2X = nextPtX-controlLength;
-					bezierVertex(cp1X, yPos, cp2X, yPos*-1, nextPtX, yPos*-1);
-					yPos*=-1;					
-				}
-			endShape();
-		popMatrix();
-	popStyle();
-	return xStart-1;
-}
 public float getAverageIBI() {
   float _bpmAvg = 0;
   for (int i=0; i<beatIntervals.size(); i++) {
@@ -169,12 +136,20 @@ public void introHeartBeat() {
     pushStyle();
       noStroke();
       fill(map(ppgY, 0, maxppgY, 255, 200));
-      for (int i=0; i<beatsCount; i++) {
-        float _size = map(beatsCount-beatIntervals.size(), 0, beatsCount, 0, height-25);
-        ellipse(0, 0, _size, _size);
-      }
+      pushStyle();
+      ellipseMode(CENTER);
+      float counterPosX = -12*5*5+5;
+        for (int i=0; i<beatsCount; i++) {
+          fill(100);
+          if (i < beatIntervals.size()) fill(200);
+          rect(counterPosX, -15, 8, 15, 3);
+          counterPosX += 25;
+          // float _size = map(beatsCount-beatIntervals.size(), 0, beatsCount, 0, height-25);
+          // ellipse(0, 0, _size, _size);
+        }
+      popStyle();
     popStyle();
-    drawHeartRate(0,0);
+    drawHeartRate(0,50);
     pushStyle();
       textAlign(CENTER);
       fill(0);
@@ -186,22 +161,22 @@ public void introHeartBeat() {
 
 public void drawHeartRate(int _xPos, int _yPos) {
   pushStyle();
-  ellipseMode(CENTER);
-  rectMode(CENTER);
-  pushStyle();
-  noFill();
-  stroke(0);
-  rect(_xPos, _yPos, 70, 70);
-  popStyle();
-  fill(map(ppgY, 0, maxppgY, 230, 25));
-  ellipse(_xPos, _yPos, map(ppgY, 0, maxppgY, 10, 50), map(ppgY, 0, maxppgY, 10, 50));
+    ellipseMode(CENTER);
+    rectMode(CENTER);
+    pushStyle();
+      noFill();
+      stroke(0);
+      rect(_xPos, _yPos, 70, 70);
+    popStyle();
+    fill(map(ppgY, 0, maxppgY, 230, 25));
+    ellipse(_xPos, _yPos, map(ppgY, 0, maxppgY, 10, 50), map(ppgY, 0, maxppgY, 10, 50));
   popStyle();
 }
 
 float ibiCurveStart = 0;
 
 public float drawIntervalWaveAsCurve(float xStart) {
-  float interval = width/(beatsCount-4);
+  float interval = 30; //width/(beatsCount-4);
   float xPos = xStart-interval; //set the first point off-screen as it is a control point and won't be drawn
   pushMatrix();
     translate(0, height/2); //move vertical origin to center of screen. This will likely change to accomodate the frame overlay
@@ -212,13 +187,46 @@ public float drawIntervalWaveAsCurve(float xStart) {
       stroke(0);
       beginShape();
       for (int i=0; i<beatIntervals.size(); i++) {  //step through the set of interval vals
-        float yPos = map(beatIntervals.get(i), 0, 1500, -150, 150); 
+        float yPos = map(beatIntervals.get(i), beatIntervals.min(), beatIntervals.max(), -150, 150); 
         curveVertex(xPos, yPos);
         xPos+=interval;
       }
       endShape();
     popStyle();
   popMatrix();
+  return xStart-1;
+}
+
+// Variables to control background sine wave
+public float drawSineCurve(float xStart){
+  float _waveLength = width/5;
+  pushStyle();
+    smooth();
+    noFill();
+    ellipseMode(CENTER);
+    pushMatrix();
+      translate(0, height/2); //move the coordinate system down to the middle of the screen
+      strokeWeight(1);
+      stroke(180);
+      strokeWeight(25);
+      stroke(200);
+      beginShape(); //start drawing the curve
+        float yPos = 150; //height of curve
+        float controlLength = _waveLength/2;
+        vertex(xStart, yPos);
+        for(float i=xStart; i<width+_waveLength; i+=_waveLength){
+          //calculate first control point at the bottom fo the wave
+          float cp1X = i+controlLength;
+          //calculate next point on curve
+          float nextPtX = i+_waveLength;
+          //calculate second control point
+          float cp2X = nextPtX-controlLength;
+          bezierVertex(cp1X, yPos, cp2X, yPos*-1, nextPtX, yPos*-1);
+          yPos*=-1;         
+        }
+      endShape();
+    popMatrix();
+  popStyle();
   return xStart-1;
 }
 
@@ -257,7 +265,7 @@ public void serialEvent(Serial port) {
     inData = trim(inData);               // trim the \n off the end
     IBI = PApplet.parseInt(inData);                  // convert ascii string to integer IBI 
     beatIntervals.append(IBI);              // add this beat to the ArrayList
-    // println("IBI: " + IBI);                
+    println("IBI: " + IBI);                
     return;
   }
 

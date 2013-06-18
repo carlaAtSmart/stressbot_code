@@ -58,10 +58,9 @@ void draw() {
       if(beatIntervals.size() == beatsCount) sineCurveStart = getIBICycleCrestPoint();
       if(beatIntervals.size() <= beatsCount) introHeartBeat();
       else { //take beatsCount beats to calibrate
-        background(ppgY);
+        // background(map(ppgY, 0, maxppgY, ));
         sineCurveStart = drawSineCurve(sineCurveStart);
         ibiCurveStart = drawIntervalWaveAsCurve(ibiCurveStart); //draw the curve version of the beat intervals
-        println(getAvgIBIDelta());
         }
       }
     }

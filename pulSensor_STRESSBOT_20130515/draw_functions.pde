@@ -4,12 +4,20 @@ void introHeartBeat() {
     pushStyle();
       noStroke();
       fill(map(ppgY, 0, maxppgY, 255, 200));
-      for (int i=0; i<beatsCount; i++) {
-        float _size = map(beatsCount-beatIntervals.size(), 0, beatsCount, 0, height-25);
-        ellipse(0, 0, _size, _size);
-      }
+      pushStyle();
+      ellipseMode(CENTER);
+      float counterPosX = -12*5*5+5;
+        for (int i=0; i<beatsCount; i++) {
+          fill(100);
+          if (i < beatIntervals.size()) fill(200);
+          rect(counterPosX, -15, 8, 15, 3);
+          counterPosX += 25;
+          // float _size = map(beatsCount-beatIntervals.size(), 0, beatsCount, 0, height-25);
+          // ellipse(0, 0, _size, _size);
+        }
+      popStyle();
     popStyle();
-    drawHeartRate(0,0);
+    drawHeartRate(0,50);
     pushStyle();
       textAlign(CENTER);
       fill(0);
@@ -21,15 +29,15 @@ void introHeartBeat() {
 
 void drawHeartRate(int _xPos, int _yPos) {
   pushStyle();
-  ellipseMode(CENTER);
-  rectMode(CENTER);
-  pushStyle();
-  noFill();
-  stroke(0);
-  rect(_xPos, _yPos, 70, 70);
-  popStyle();
-  fill(map(ppgY, 0, maxppgY, 230, 25));
-  ellipse(_xPos, _yPos, map(ppgY, 0, maxppgY, 10, 50), map(ppgY, 0, maxppgY, 10, 50));
+    ellipseMode(CENTER);
+    rectMode(CENTER);
+    pushStyle();
+      noFill();
+      stroke(0);
+      rect(_xPos, _yPos, 70, 70);
+    popStyle();
+    fill(map(ppgY, 0, maxppgY, 230, 25));
+    ellipse(_xPos, _yPos, map(ppgY, 0, maxppgY, 10, 50), map(ppgY, 0, maxppgY, 10, 50));
   popStyle();
 }
 
@@ -47,7 +55,7 @@ float drawIntervalWaveAsCurve(float xStart) {
       stroke(0);
       beginShape();
       for (int i=0; i<beatIntervals.size(); i++) {  //step through the set of interval vals
-        float yPos = map(beatIntervals.get(i), 0, 1500, -150, 150); 
+        float yPos = map(beatIntervals.get(i), beatIntervals.min(), beatIntervals.max(), -150, 150); 
         curveVertex(xPos, yPos);
         xPos+=interval;
       }
