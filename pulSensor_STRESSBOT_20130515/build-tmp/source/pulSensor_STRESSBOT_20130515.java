@@ -44,6 +44,7 @@ int beatsCount = 24; //number of beats to sample from the IntList
 
 float sineCurveStart = 0; //intitialize default point to start the sivewave
 
+int maxIBIVal, minIBIVal;
 
 // initializing flags here
 boolean pulse = false;    // made true in serialEvent when processing gets new IBI value from arduino
@@ -73,12 +74,17 @@ public void draw() {
     //TODO: draw wakwup animation
     if (fingerIsInserted) {
       //draw intro animation
-      if(beatIntervals.size() == beatsCount) sineCurveStart = getIBICycleCrestPoint();
+      if(beatIntervals.size() == beatsCount) {
+        sineCurveStart = getIBICycleCrestPoint();
+        maxIBIVal = beatIntervals.max(); //set the max here so the graph doesn't jump
+        minIBIVal = beatIntervals.min(); //same for the min
+      }
       if(beatIntervals.size() <= beatsCount) drawCalibrationStatus();
       else { //take beatsCount beats to calibrate
         // background(map(ppgY, 0, maxppgY, ));
         sineCurveStart = drawSineCurve(sineCurveStart);
         ibiCurveStart = drawIntervalWaveAsCurve(ibiCurveStart); //draw the curve version of the beat intervals
+        drawHeartRate(width-150, height-150);
         }
       }
     }
@@ -132,7 +138,7 @@ public int getIBICycleLength() {
 	return -1;
 }
 
-public int getIBICycleCrestPoint() { //get the lowest point of the first IBI cycle. This is used to sync up the IBI wave with the sample sine wave
+public int getIBICycleCrestPoint() { //get the highest point of the first IBI cycle. This is used to sync up the IBI wave with the sample sine wave
 	for (int i=0; i<beatIntervals.size(); i++) {
 		if (beatIntervals.get(i) == beatIntervals.max()) return i;
 	}
@@ -180,8 +186,10 @@ public void drawCalibrationStatus() {
 }
 
 public void drawHeartRate(int _xPos, int _yPos) {
+  PImage bpmIcon = loadImage("BPMicon.png");
   pushStyle();
     ellipseMode(CENTER);
+    imageMode(CENTER);
     rectMode(CENTER);
     pushStyle();
       noFill();
@@ -189,7 +197,8 @@ public void drawHeartRate(int _xPos, int _yPos) {
       rect(_xPos, _yPos, 70, 70);
     popStyle();
     fill(map(ppgY, 0, maxppgY, 230, 25));
-    ellipse(_xPos, _yPos, map(ppgY, 0, maxppgY, 10, 50), map(ppgY, 0, maxppgY, 10, 50));
+    // ellipse(_xPos, _yPos, map(ppgY, 0, maxppgY, 10, 50), map(ppgY, 0, maxppgY, 10, 50));
+    image(bpmIcon, _xPos, _yPos, map(ppgY, 0, maxppgY, 10, 50), map(ppgY, 0, maxppgY, 10, 50));
   popStyle();
 }
 
@@ -207,7 +216,7 @@ public float drawIntervalWaveAsCurve(float xStart) {
       stroke(0);
       beginShape();
       for (int i=0; i<beatIntervals.size(); i++) {  //step through the set of interval vals
-        float yPos = map(beatIntervals.get(i), beatIntervals.min(), beatIntervals.max(), -150, 150); 
+        float yPos = map(beatIntervals.get(i), minIBIVal, maxIBIVal, -150, 150); 
         curveVertex(xPos, yPos);
         xPos+=interval;
       }
@@ -248,33 +257,6 @@ public float drawSineCurve(float xStart){
     popMatrix();
   popStyle();
   return xStart-1;
-}
-
-public void drawIntervalWaveAsBlobs(int[] _sampleArray) {
-  int counter = 0;
-  pushStyle();
-  noStroke();
-  fill(120);
-  for (int i=0; i<_sampleArray.length; i++) { //look through the specified set of interval measurements
-    float yPos = map(_sampleArray[i], 0, maxInterval(), height-60, 60);
-    float xPos = map(counter, 0, _sampleArray.length, 30, width-30);
-    ellipse(xPos, yPos, 30, 30);
-    if (i == _sampleArray.length-1) {
-      ellipse(xPos, yPos, map(ppgY, 0, maxppgY, 10, 50), map(ppgY, 0, maxppgY, 10, 50));
-    }
-    counter++;
-  }
-  popStyle();
-}
-
-public float maxInterval() { //get the largest value in the sample arrray
-  float maxVal = 0;
-  for (int i=0; i<beatIntervals.size(); i++) {
-    if (beatIntervals.get(i) > maxVal) {
-      maxVal = beatIntervals.get(i);
-    }
-  }
-  return maxVal;
 }
 
 public void serialEvent(Serial port) {   

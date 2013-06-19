@@ -46,7 +46,7 @@ int getIBICycleLength() {
 	return -1;
 }
 
-int getIBICycleCrestPoint() { //get the lowest point of the first IBI cycle. This is used to sync up the IBI wave with the sample sine wave
+int getIBICycleCrestPoint() { //get the highest point of the first IBI cycle. This is used to sync up the IBI wave with the sample sine wave
 	for (int i=0; i<beatIntervals.size(); i++) {
 		if (beatIntervals.get(i) == beatIntervals.max()) return i;
 	}

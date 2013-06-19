@@ -26,6 +26,7 @@ int beatsCount = 24; //number of beats to sample from the IntList
 
 float sineCurveStart = 0; //intitialize default point to start the sivewave
 
+int maxIBIVal, minIBIVal;
 
 // initializing flags here
 boolean pulse = false;    // made true in serialEvent when processing gets new IBI value from arduino
@@ -55,12 +56,17 @@ void draw() {
     //TODO: draw wakwup animation
     if (fingerIsInserted) {
       //draw intro animation
-      if(beatIntervals.size() == beatsCount) sineCurveStart = getIBICycleCrestPoint();
+      if(beatIntervals.size() == beatsCount) {
+        sineCurveStart = getIBICycleCrestPoint();
+        maxIBIVal = beatIntervals.max(); //set the max here so the graph doesn't jump
+        minIBIVal = beatIntervals.min(); //same for the min
+      }
       if(beatIntervals.size() <= beatsCount) drawCalibrationStatus();
       else { //take beatsCount beats to calibrate
         // background(map(ppgY, 0, maxppgY, ));
         sineCurveStart = drawSineCurve(sineCurveStart);
         ibiCurveStart = drawIntervalWaveAsCurve(ibiCurveStart); //draw the curve version of the beat intervals
+        drawHeartRate(width-150, height-150);
         }
       }
     }
