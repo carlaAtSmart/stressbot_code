@@ -32,8 +32,10 @@ void drawCalibrationStatus() {
 }
 
 void drawHeartRate(int _xPos, int _yPos) {
+  PImage bpmIcon = loadImage("BPMicon.png");
   pushStyle();
     ellipseMode(CENTER);
+    imageMode(CENTER);
     rectMode(CENTER);
     pushStyle();
       noFill();
@@ -41,7 +43,8 @@ void drawHeartRate(int _xPos, int _yPos) {
       rect(_xPos, _yPos, 70, 70);
     popStyle();
     fill(map(ppgY, 0, maxppgY, 230, 25));
-    ellipse(_xPos, _yPos, map(ppgY, 0, maxppgY, 10, 50), map(ppgY, 0, maxppgY, 10, 50));
+    // ellipse(_xPos, _yPos, map(ppgY, 0, maxppgY, 10, 50), map(ppgY, 0, maxppgY, 10, 50));
+    image(bpmIcon, _xPos, _yPos, map(ppgY, 0, maxppgY, 10, 50), map(ppgY, 0, maxppgY, 10, 50));
   popStyle();
 }
 
@@ -59,7 +62,7 @@ float drawIntervalWaveAsCurve(float xStart) {
       stroke(0);
       beginShape();
       for (int i=0; i<beatIntervals.size(); i++) {  //step through the set of interval vals
-        float yPos = map(beatIntervals.get(i), beatIntervals.min(), beatIntervals.max(), -150, 150); 
+        float yPos = map(beatIntervals.get(i), minIBIVal, maxIBIVal, -150, 150); 
         curveVertex(xPos, yPos);
         xPos+=interval;
       }
@@ -100,31 +103,4 @@ float drawSineCurve(float xStart){
     popMatrix();
   popStyle();
   return xStart-1;
-}
-
-void drawIntervalWaveAsBlobs(int[] _sampleArray) {
-  int counter = 0;
-  pushStyle();
-  noStroke();
-  fill(120);
-  for (int i=0; i<_sampleArray.length; i++) { //look through the specified set of interval measurements
-    float yPos = map(_sampleArray[i], 0, maxInterval(), height-60, 60);
-    float xPos = map(counter, 0, _sampleArray.length, 30, width-30);
-    ellipse(xPos, yPos, 30, 30);
-    if (i == _sampleArray.length-1) {
-      ellipse(xPos, yPos, map(ppgY, 0, maxppgY, 10, 50), map(ppgY, 0, maxppgY, 10, 50));
-    }
-    counter++;
-  }
-  popStyle();
-}
-
-float maxInterval() { //get the largest value in the sample arrray
-  float maxVal = 0;
-  for (int i=0; i<beatIntervals.size(); i++) {
-    if (beatIntervals.get(i) > maxVal) {
-      maxVal = beatIntervals.get(i);
-    }
-  }
-  return maxVal;
 }
