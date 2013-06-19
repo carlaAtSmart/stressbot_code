@@ -61,7 +61,7 @@ public void setup() {
 
     // FIND AND ESTABLISH CONTACT WITH THE SERIAL PORT
   println(Serial.list());       // print a list of available serial ports
-  port = new Serial(this, Serial.list()[6], 115200); // choose the right baud rate
+  port = new Serial(this, Serial.list()[0], 115200); // choose the right baud rate
   port.bufferUntil('\n');          // arduino will end each ascii number string with a carriage return 
   port.clear();                    // flush the Serial buffer
 }  // END OF SETUP
@@ -74,7 +74,7 @@ public void draw() {
     if (fingerIsInserted) {
       //draw intro animation
       if(beatIntervals.size() == beatsCount) sineCurveStart = getIBICycleCrestPoint();
-      if(beatIntervals.size() <= beatsCount) introHeartBeat();
+      if(beatIntervals.size() <= beatsCount) drawCalibrationStatus();
       else { //take beatsCount beats to calibrate
         // background(map(ppgY, 0, maxppgY, ));
         sineCurveStart = drawSineCurve(sineCurveStart);
@@ -85,28 +85,36 @@ public void draw() {
   }
 
 public float getAverageIBI() {
-  float _bpmAvg = 0;
-  for (int i=0; i<beatIntervals.size(); i++) {
-    _bpmAvg += beatIntervals.get(i); //add up all the IBI values
-  }
-  return _bpmAvg / beatIntervals.size(); //get the average IBI value
+	int _sampleSize = 10;
+  	if (beatIntervals.size() < _sampleSize) return -1;
+  	else {
+	  float _bpmAvg = 0;
+	  for (int i=beatIntervals.size()-_sampleSize; i<beatIntervals.size(); i++) {
+	    _bpmAvg += beatIntervals.get(i); //add up all the IBI values
+	  }
+	  return abs(_bpmAvg / _sampleSize); //get the average IBI value
+	}
 }
 
 public int getAverageBPM() {
-  float _avgIBI = getAverageIBI()/1000; //get the average interbeat interval in 
-  return round(60/_avgIBI); //divide 60 by the average IBI to get BPM. Round and return as int
+	float _avgIBI = getAverageIBI(); //get the average interbeat interval in 
+	if (_avgIBI == -1) return -1;
+  	else {
+		_avgIBI /= 1000; //divide by 1000 to convert to seconds
+		return round(60/_avgIBI); //divide 60 by the average IBI to get BPM. Round and return as int
+	}
 }
 
 public float getAvgIBIDelta() {
-	int[] _deltaVals = new int[beatIntervals.size()-1];
-	for (int i=0; i<_deltaVals.length; i++) {
-		_deltaVals[i] = beatIntervals.get(i+1) - beatIntervals.get(i); //fill the _deltaVals array with the difference between IBIs
+	int _sampleSize =10;
+	if (beatIntervals.size() <= _sampleSize) return -1;
+	else {		
+		float _totalDelta = 0;
+		for (int i=beatIntervals.size()-_sampleSize; i<beatIntervals.size(); i++) {
+			_totalDelta += abs(beatIntervals.get(i)-beatIntervals.get(i-1)); //add up the differences of the last 20 IBI values
+		}
+		return abs(_totalDelta / _sampleSize); //return the average delta value
 	}
-	float _totalDelta = 0;
-	for (int i=0; i<_deltaVals.length; i++) {
-		_totalDelta += _deltaVals[i]; //add up the delta values
-	}
-	return _totalDelta / _deltaVals.length; //return the average delta value
 }
 
 public int getIBICycleLength() {
@@ -130,7 +138,15 @@ public int getIBICycleCrestPoint() { //get the lowest point of the first IBI cyc
 	}
 	return -1;
 }
-public void introHeartBeat() {
+
+public String describeBPM() {
+	int _heartRate = getAverageBPM();
+	if (_heartRate < 0) return "";
+	else if (_heartRate < 60) return "low";
+	else if (_heartRate < 75) return "cool";
+	else return "a bit high";
+}
+public void drawCalibrationStatus() {
   pushMatrix();
     translate(width/2, height/2);
     pushStyle();
@@ -138,10 +154,10 @@ public void introHeartBeat() {
       fill(map(ppgY, 0, maxppgY, 255, 200));
       pushStyle();
       ellipseMode(CENTER);
-      float counterPosX = -12*5*5+5;
+      float counterPosX = -12*5*5+7.5f;
         for (int i=0; i<beatsCount; i++) {
-          fill(100);
-          if (i < beatIntervals.size()) fill(200);
+          fill(200);
+          if (i < beatIntervals.size()) fill(80);
           rect(counterPosX, -15, 8, 15, 3);
           counterPosX += 25;
           // float _size = map(beatsCount-beatIntervals.size(), 0, beatsCount, 0, height-25);
@@ -149,12 +165,16 @@ public void introHeartBeat() {
         }
       popStyle();
     popStyle();
-    drawHeartRate(0,50);
+    drawHeartRate(0,60);
     pushStyle();
       textAlign(CENTER);
       fill(0);
       textSize(30);
-      text(str(getAverageBPM()), 0, 100);
+      if (getAverageBPM() > 0) {
+        String heartRate = "Your Heartrate is " + str(getAverageBPM()) + " beats per minute, which is " + describeBPM() + ".";
+        text(heartRate, 0, 130); //draw average bpm to screen
+      }
+      else text("calibrating", 0, 130);
     popStyle();
   popMatrix();
 }
@@ -176,7 +196,7 @@ public void drawHeartRate(int _xPos, int _yPos) {
 float ibiCurveStart = 0;
 
 public float drawIntervalWaveAsCurve(float xStart) {
-  float interval = 30; //width/(beatsCount-4);
+  float interval = width/(beatsCount-4);
   float xPos = xStart-interval; //set the first point off-screen as it is a control point and won't be drawn
   pushMatrix();
     translate(0, height/2); //move vertical origin to center of screen. This will likely change to accomodate the frame overlay
@@ -265,7 +285,8 @@ public void serialEvent(Serial port) {
     inData = trim(inData);               // trim the \n off the end
     IBI = PApplet.parseInt(inData);                  // convert ascii string to integer IBI 
     beatIntervals.append(IBI);              // add this beat to the ArrayList
-    println("IBI: " + IBI);                
+    println("IBI: " + IBI);  
+    println("IBI Interval:" + str(getAvgIBIDelta()));              
     return;
   }
 

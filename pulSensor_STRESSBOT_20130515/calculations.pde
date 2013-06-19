@@ -1,26 +1,34 @@
 float getAverageIBI() {
-  float _bpmAvg = 0;
-  for (int i=0; i<beatIntervals.size(); i++) {
-    _bpmAvg += beatIntervals.get(i); //add up all the IBI values
-  }
-  return _bpmAvg / beatIntervals.size(); //get the average IBI value
+	int _sampleSize = 10;
+  	if (beatIntervals.size() < _sampleSize) return -1;
+  	else {
+	  float _bpmAvg = 0;
+	  for (int i=beatIntervals.size()-_sampleSize; i<beatIntervals.size(); i++) {
+	    _bpmAvg += beatIntervals.get(i); //add up all the IBI values
+	  }
+	  return abs(_bpmAvg / _sampleSize); //get the average IBI value
+	}
 }
 
 int getAverageBPM() {
-  float _avgIBI = getAverageIBI()/1000; //get the average interbeat interval in 
-  return round(60/_avgIBI); //divide 60 by the average IBI to get BPM. Round and return as int
+	float _avgIBI = getAverageIBI(); //get the average interbeat interval in 
+	if (_avgIBI == -1) return -1;
+  	else {
+		_avgIBI /= 1000; //divide by 1000 to convert to seconds
+		return round(60/_avgIBI); //divide 60 by the average IBI to get BPM. Round and return as int
+	}
 }
 
 float getAvgIBIDelta() {
-	int[] _deltaVals = new int[beatIntervals.size()-1];
-	for (int i=0; i<_deltaVals.length; i++) {
-		_deltaVals[i] = beatIntervals.get(i+1) - beatIntervals.get(i); //fill the _deltaVals array with the difference between IBIs
+	int _sampleSize =10;
+	if (beatIntervals.size() <= _sampleSize) return -1;
+	else {		
+		float _totalDelta = 0;
+		for (int i=beatIntervals.size()-_sampleSize; i<beatIntervals.size(); i++) {
+			_totalDelta += abs(beatIntervals.get(i)-beatIntervals.get(i-1)); //add up the differences of the last 20 IBI values
+		}
+		return abs(_totalDelta / _sampleSize); //return the average delta value
 	}
-	float _totalDelta = 0;
-	for (int i=0; i<_deltaVals.length; i++) {
-		_totalDelta += _deltaVals[i]; //add up the delta values
-	}
-	return _totalDelta / _deltaVals.length; //return the average delta value
 }
 
 int getIBICycleLength() {
@@ -43,4 +51,12 @@ int getIBICycleCrestPoint() { //get the lowest point of the first IBI cycle. Thi
 		if (beatIntervals.get(i) == beatIntervals.max()) return i;
 	}
 	return -1;
+}
+
+String describeBPM() {
+	int _heartRate = getAverageBPM();
+	if (_heartRate < 0) return "";
+	else if (_heartRate < 60) return "low";
+	else if (_heartRate < 75) return "cool";
+	else return "a bit high";
 }

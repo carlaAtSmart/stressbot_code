@@ -43,7 +43,7 @@ void setup() {
 
     // FIND AND ESTABLISH CONTACT WITH THE SERIAL PORT
   println(Serial.list());       // print a list of available serial ports
-  port = new Serial(this, Serial.list()[6], 115200); // choose the right baud rate
+  port = new Serial(this, Serial.list()[0], 115200); // choose the right baud rate
   port.bufferUntil('\n');          // arduino will end each ascii number string with a carriage return 
   port.clear();                    // flush the Serial buffer
 }  // END OF SETUP
@@ -56,7 +56,7 @@ void draw() {
     if (fingerIsInserted) {
       //draw intro animation
       if(beatIntervals.size() == beatsCount) sineCurveStart = getIBICycleCrestPoint();
-      if(beatIntervals.size() <= beatsCount) introHeartBeat();
+      if(beatIntervals.size() <= beatsCount) drawCalibrationStatus();
       else { //take beatsCount beats to calibrate
         // background(map(ppgY, 0, maxppgY, ));
         sineCurveStart = drawSineCurve(sineCurveStart);

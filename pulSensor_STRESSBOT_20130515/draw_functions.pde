@@ -1,4 +1,4 @@
-void introHeartBeat() {
+void drawCalibrationStatus() {
   pushMatrix();
     translate(width/2, height/2);
     pushStyle();
@@ -6,10 +6,10 @@ void introHeartBeat() {
       fill(map(ppgY, 0, maxppgY, 255, 200));
       pushStyle();
       ellipseMode(CENTER);
-      float counterPosX = -12*5*5+5;
+      float counterPosX = -12*5*5+7.5;
         for (int i=0; i<beatsCount; i++) {
-          fill(100);
-          if (i < beatIntervals.size()) fill(200);
+          fill(200);
+          if (i < beatIntervals.size()) fill(80);
           rect(counterPosX, -15, 8, 15, 3);
           counterPosX += 25;
           // float _size = map(beatsCount-beatIntervals.size(), 0, beatsCount, 0, height-25);
@@ -17,12 +17,16 @@ void introHeartBeat() {
         }
       popStyle();
     popStyle();
-    drawHeartRate(0,50);
+    drawHeartRate(0,60);
     pushStyle();
       textAlign(CENTER);
       fill(0);
       textSize(30);
-      text(str(getAverageBPM()), 0, 100);
+      if (getAverageBPM() > 0) {
+        String heartRate = "Your Heartrate is " + str(getAverageBPM()) + " beats per minute, which is " + describeBPM() + ".";
+        text(heartRate, 0, 130); //draw average bpm to screen
+      }
+      else text("calibrating", 0, 130);
     popStyle();
   popMatrix();
 }
